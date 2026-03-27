@@ -1,0 +1,55 @@
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  background: #F5F3EE;
+  border-bottom: 1px solid #e0ddd8;
+}
+.nav-left { display: flex; gap: 32px; align-items: center; }
+.nav-link {
+  font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #1a1a1a;
+  text-decoration: none; padding-bottom: 3px; position: relative;
+}
+.nav-link::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px; background: #1a1a1a;
+  transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+}
+.nav-link.active::after, .nav-link:hover::after { transform: scaleX(1); }
+
+.nav-logo {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #1a1a1a; text-decoration: none;
+}
+.nav-right { display: flex; gap: 14px; align-items: center; }
+.icon-btn {
+  background: none; border: none; cursor: pointer; color: #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  padding: 6px; border-radius: 50%; transition: background 0.2s;
+}
+.icon-btn:hover { background: rgba(0,0,0,0.05); }
+.cart-btn { position: relative; }
+.cart-badge {
+  position: absolute; top: -2px; right: -2px;
+  background: #1a1a1a; color: #fff; font-size: 9px;
+  width: 15px; height: 15px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Jost', sans-serif; font-weight: 500;
+}
+.search-overlay {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
+  background: #F5F3EE; height: 64px;
+  display: flex; align-items: center; padding: 0 48px;
+  border-bottom: 1px solid #e0ddd8;
+  transform: translateY(-100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.search-overlay.open { transform: translateY(0); }
+.search-inner { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 600px; margin: 0 auto; }
+.search-inner input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 300; color: #1a1a1a;
+}
+.search-inner input::placeholder { color: #aaa; }

@@ -1,0 +1,20 @@
+.scroller-section {
+  padding: 32px 0 24px;
+  background: #F5F3EE;
+  overflow: hidden;
+  position: relative;
+}
+.scroller-header {
+  display: flex; align-items: baseline;
+  justify-content: space-between;
+  padding: 0 40px; margin-bottom: 16px;
+}
+.scroller-window {
+  overflow: hidden; width: 100%; cursor: grab;
+}
+.scroller-window:active { cursor: grabbing; }
+.scroller-track {
+  display: flex; gap: 14px; width: max-content;
+  will-change: transform; padding: 4px 0 10px 40px;
+}
+.scroller-item { flex-shrink: 0; }
