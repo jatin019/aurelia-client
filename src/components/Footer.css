@@ -53,3 +53,13 @@
   .footer-inner { grid-template-columns: 1fr; padding: 48px 24px 36px; gap: 36px; }
   .footer-bottom { flex-direction: column; gap: 10px; padding: 18px 24px; text-align: center; }
 }
+
+@media (max-width: 480px) {
+  .footer-inner {
+    padding: 40px 16px 32px;
+    gap: 28px;
+  }
+  .footer-bottom {
+    padding: 16px;
+  }
+}

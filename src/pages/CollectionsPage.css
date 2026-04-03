@@ -44,3 +44,15 @@
 
 @media (max-width: 1000px) { .collections-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 640px)  { .collections-grid { grid-template-columns: 1fr; padding: 28px 20px 60px; } }
+@media (max-width: 480px) {
+  .collections-header {
+    padding: 40px 20px 28px;
+  }
+  .collections-grid {
+    padding: 20px 14px 48px;
+    gap: 16px;
+  }
+  .col-card-img {
+    height: 200px;
+  }
+}

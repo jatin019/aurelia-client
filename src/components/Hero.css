@@ -109,6 +109,69 @@
 @keyframes fadeUp       { from { opacity:0; transform:translateY(20px);  } to { opacity:1; transform:translateY(0); } }
 
 @media (max-width: 900px) {
-  .hero { flex-direction: column; padding: 40px 24px; min-height: auto; }
-  .hero-images { height: 380px; width: 100%; }
+  .hero {
+    flex-direction: column;
+    padding: 40px 24px 48px;
+    min-height: auto;
+    gap: 40px;
+  }
+  .hero-images {
+    height: 340px;
+    width: 100%;
+  }
+  .hero-arch {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 320px;
+  }
+  .hero-box-img {
+    right: 4px;
+    top: 10px;
+    width: 120px;
+    height: 110px;
+  }
+  .hero-hand-img {
+    right: 4px;
+    bottom: 0;
+    width: 150px;
+    height: 165px;
+  }
+  .hero-badge {
+    left: -10px;
+  }
+  .hero-content {
+    text-align: center;
+  }
+  .hero-sub {
+    margin: 0 auto 36px;
+  }
+  .hero-btns {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 32px 16px 40px;
+  }
+  .hero-images {
+    height: 300px;
+  }
+  .hero-arch {
+    width: 170px;
+    height: 280px;
+  }
+  .hero-box-img {
+    width: 100px;
+    height: 90px;
+  }
+  .hero-hand-img {
+    width: 125px;
+    height: 140px;
+  }
+  .btn-dark, .btn-outline {
+    padding: 11px 20px;
+    font-size: 10px;
+  }
 }

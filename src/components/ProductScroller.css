@@ -18,3 +18,17 @@
   will-change: transform; padding: 4px 0 10px 40px;
 }
 .scroller-item { flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .scroller-section {
+    padding: 24px 0 16px;
+  }
+  .scroller-header {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+  .scroller-track {
+    padding: 4px 0 10px 20px;
+    gap: 10px;
+  }
+}

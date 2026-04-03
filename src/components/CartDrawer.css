@@ -100,4 +100,9 @@
 }
 .continue-btn:hover { color: #1a1a1a; }
 
-@media (max-width: 480px) { .cart-drawer { width: 100%; } }
+@media (max-width: 480px) {
+  .cart-drawer { width: 100%; }
+  .cart-header { padding: 20px 20px; }
+  .cart-items { padding: 16px 20px; }
+  .cart-footer { padding: 16px 20px 24px; }
+}

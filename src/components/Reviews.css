@@ -38,3 +38,11 @@
   .reviews-grid { grid-template-columns: 1fr; }
   .reviews { padding: 48px 24px 60px; }
 }
+@media (max-width: 480px) {
+  .reviews {
+    padding: 40px 16px 48px;
+  }
+  .review-card {
+    padding: 20px 18px;
+  }
+}

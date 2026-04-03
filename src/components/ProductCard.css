@@ -34,3 +34,13 @@
   font-family: 'Cormorant Garamond', serif; font-size: 15px;
   font-weight: 400; color: #666; font-style: italic;
 }
+
+@media (max-width: 480px) {
+  .product-card {
+    flex: 0 0 145px;
+  }
+  .product-img-wrap {
+    width: 145px;
+    height: 145px;
+  }
+}
