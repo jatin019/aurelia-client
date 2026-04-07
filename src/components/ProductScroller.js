@@ -10,20 +10,18 @@ export default function ProductScroller({ title, products, linkTo }) {
   const pausedRef = useRef(false);
   const navigate  = useNavigate();
 
-  // ✅ Only double when there are enough products to fill the screen
   const shouldLoop = products.length >= 4;
 
   const displayProducts = useMemo(() => {
     if (products.length === 0) return [];
-    if (!shouldLoop) return products;        // few items → show once, no loop
-    return [...products, ...products];        // enough items → double for loop
+    if (!shouldLoop) return products;
+    return [...products, ...products];
   }, [products, shouldLoop]);
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track || products.length === 0) return;
 
-    // ✅ Don't animate if too few products
     if (!shouldLoop) {
       track.style.transform = 'translateX(0px)';
       return;
@@ -34,7 +32,6 @@ export default function ProductScroller({ title, products, linkTo }) {
 
     const raf = requestAnimationFrame(() => {
       const totalWidth = track.scrollWidth / 2;
-
       const animate = () => {
         if (!pausedRef.current) {
           posRef.current += 0.55;
@@ -67,7 +64,12 @@ export default function ProductScroller({ title, products, linkTo }) {
       >
         <div className="scroller-track" ref={trackRef}>
           {displayProducts.map((p, i) => (
-            <div className="scroller-item" key={`${p.id}-${i}`}>
+            <div
+              className="scroller-item"
+              key={`${p.id}-${i}`}
+              onClick={() => navigate(`/product/${p.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <ProductCard product={p} />
             </div>
           ))}

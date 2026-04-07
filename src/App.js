@@ -5,7 +5,9 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
 import CollectionsPage from './pages/CollectionsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import CartDrawer from './components/CartDrawer';
+import ScrollToTop from './components/ScrollToTop';
 
 export const CartContext = React.createContext();
 
@@ -28,11 +30,13 @@ export default function App() {
   return (
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, cartCount, cartOpen, setCartOpen }}>
       <BrowserRouter>
+        <ScrollToTop />
         <Navbar />
         <Routes>
-          <Route path="/"           element={<HomePage />} />
-          <Route path="/shop"       element={<ShopPage />} />
+          <Route path="/"            element={<HomePage />} />
+          <Route path="/shop"        element={<ShopPage />} />
           <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
         </Routes>
         <Footer />
         <CartDrawer />

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { allProducts } from '../data/products';
@@ -25,8 +25,8 @@ export default function ShopPage() {
   const [products, setProducts] = useState(allProducts);
   const [addedId, setAddedId]   = useState(null);
   const { addToCart }           = useContext(CartContext);
+  const navigate                = useNavigate();
 
-  // ── Dynamic categories ──
   const [catRow1, setCatRow1] = useState([]);
   const [catRow2, setCatRow2] = useState([]);
 
@@ -51,27 +51,18 @@ export default function ShopPage() {
     ];
   }, [catRow1, catRow2]);
 
-  // ── Products: MERGE Firebase + defaults ──
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
-      if (snap.empty) {
-        setProducts(allProducts);
-        return;
-      }
-
+      if (snap.empty) { setProducts(allProducts); return; }
       const firebaseProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // ✅ Firebase products first, then defaults that don't conflict
       const merged = [
         ...firebaseProducts,
         ...allProducts.filter(d => !firebaseProducts.some(f =>
           f.name.toLowerCase() === d.name.toLowerCase()
         ))
       ];
-
       setProducts(merged);
-
     }, () => {});
     return () => unsub();
   }, []);
@@ -87,7 +78,8 @@ export default function ShopPage() {
     return 0;
   });
 
-  const handleAdd = (product) => {
+  const handleAdd = (e, product) => {
+    e.stopPropagation();
     addToCart(product);
     setAddedId(product.id);
     setTimeout(() => setAddedId(null), 1500);
@@ -120,12 +112,12 @@ export default function ShopPage() {
 
       <div className="shop-grid">
         {sorted.map(product => (
-          <div className="shop-card" key={product.id}>
+          <div className="shop-card" key={product.id} onClick={() => navigate(`/product/${product.id}`)}>
             <div className="shop-card-img">
               <img src={product.image} alt={product.name} loading="lazy" />
               <button
                 className={`shop-add-btn ${addedId === product.id ? 'added' : ''}`}
-                onClick={() => handleAdd(product)}
+                onClick={(e) => handleAdd(e, product)}
               >
                 {addedId === product.id ? '✓ Added' : '+ Add to Cart'}
               </button>

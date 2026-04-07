@@ -16,7 +16,6 @@ export default function HomePage() {
 
     const unsub = onSnapshot(q, snap => {
       if (snap.empty) {
-        // No Firebase products — keep defaults
         setBestSellers(defaultBS);
         setNewArrivals(defaultNA);
         return;
@@ -30,7 +29,6 @@ export default function HomePage() {
       const firebaseBS = firebaseProducts.filter(p => p.section === 'bestSellers');
       const firebaseNA = firebaseProducts.filter(p => p.section === 'newArrivals');
 
-      // ✅ MERGE: Firebase products first, then defaults that don't conflict
       const mergedBS = [
         ...firebaseBS,
         ...defaultBS.filter(d => !firebaseBS.some(f =>
@@ -54,7 +52,8 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="page-wrapper">
+    // home-page class removes the 64px padding-top so hero can be truly full-screen
+    <div className="page-wrapper home-page">
       <Hero />
       <Categories />
       <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop" />

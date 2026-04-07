@@ -1,6 +1,7 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
+  --navbar-h: 50px;
   --bg: #F5F3EE;
   --white: #ffffff;
   --charcoal: #1a1a1a;
@@ -28,7 +29,7 @@ a { text-decoration: none; color: inherit; }
 
 .section-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(22px, 2.5vw, 34px);
+  font-size: clamp(20px, 2.2vw, 30px);
   font-weight: 400;
   color: var(--charcoal);
   letter-spacing: 0.01em;
@@ -36,30 +37,27 @@ a { text-decoration: none; color: inherit; }
 
 .view-all-link {
   font-family: 'Jost', sans-serif;
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 11px; font-weight: 400;
   letter-spacing: 0.05em;
   color: var(--charcoal);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: 1px solid #ccc;
-  padding: 6px 16px;
-  border-radius: 100px;
-  transition: all 0.25s;
-  white-space: nowrap;
-  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid #ccc;
+  padding: 5px 14px; border-radius: 100px;
+  transition: all 0.25s; white-space: nowrap; cursor: pointer;
 }
 .view-all-link:hover {
-  border-color: #1a1a1a;
-  background: #1a1a1a;
-  color: #fff;
+  border-color: #1a1a1a; background: #1a1a1a; color: #fff;
 }
 
+/* Non-hero pages sit below fixed navbar */
 .page-wrapper {
-  padding-top: 64px;
+  padding-top: var(--navbar-h);
   min-height: 100vh;
+}
+
+/* Hero page: hero itself is full-screen, navbar overlaps it */
+.page-wrapper.home-page {
+  padding-top: 0;
 }
 
 @keyframes fadeUp {
