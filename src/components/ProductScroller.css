@@ -1,34 +1,57 @@
 .scroller-section {
-  padding: 32px 0 24px;
+  padding: 36px 0 28px;
   background: #F5F3EE;
-  overflow: hidden;
   position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 .scroller-header {
-  display: flex; align-items: baseline;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding: 0 40px; margin-bottom: 16px;
+  padding: 0 5vw; margin-bottom: 18px;
 }
+
+/* The scrollable window */
 .scroller-window {
-  overflow: hidden; width: 100%; cursor: grab;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  cursor: grab;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
+.scroller-window::-webkit-scrollbar { display: none; }
 .scroller-window:active { cursor: grabbing; }
+
 .scroller-track {
-  display: flex; gap: 14px; width: max-content;
-  will-change: transform; padding: 4px 0 10px 40px;
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  padding: 4px 0 12px 5vw;
+  /* Trailing space so last card isn't flush */
+  padding-right: 5vw;
 }
 .scroller-item { flex-shrink: 0; }
 
-@media (max-width: 768px) {
-  .scroller-section {
-    padding: 24px 0 16px;
-  }
-  .scroller-header {
-    padding: 0 20px;
-    margin-bottom: 12px;
-  }
-  .scroller-track {
-    padding: 4px 0 10px 20px;
-    gap: 10px;
-  }
+/* Fade edge indicators */
+.scroller-section::before,
+.scroller-section::after {
+  content: '';
+  position: absolute; top: 56px; bottom: 0;
+  width: 48px; pointer-events: none; z-index: 2;
+}
+.scroller-section::before {
+  left: 0;
+  background: linear-gradient(to right, #F5F3EE 40%, transparent);
+}
+.scroller-section::after {
+  right: 0;
+  background: linear-gradient(to left, #F5F3EE 40%, transparent);
+}
+
+@media (max-width: 640px) {
+  .scroller-section { padding: 24px 0 18px; }
+  .scroller-header { padding: 0 4vw; margin-bottom: 12px; }
+  .scroller-track { padding: 4px 0 10px 4vw; padding-right: 4vw; gap: 10px; }
 }

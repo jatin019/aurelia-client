@@ -13,51 +13,41 @@ export default function HomePage() {
 
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-
     const unsub = onSnapshot(q, snap => {
-      if (snap.empty) {
-        setBestSellers(defaultBS);
-        setNewArrivals(defaultNA);
-        return;
-      }
-
-      const firebaseProducts = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
-
-      const firebaseBS = firebaseProducts.filter(p => p.section === 'bestSellers');
-      const firebaseNA = firebaseProducts.filter(p => p.section === 'newArrivals');
-
+      if (snap.empty) { setBestSellers(defaultBS); setNewArrivals(defaultNA); return; }
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const firebaseBS = all.filter(p => p.section === 'bestSellers');
+      const firebaseNA = all.filter(p => p.section === 'newArrivals');
       const mergedBS = [
         ...firebaseBS,
-        ...defaultBS.filter(d => !firebaseBS.some(f =>
-          f.name.toLowerCase() === d.name.toLowerCase()
-        ))
+        ...defaultBS.filter(d => !firebaseBS.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
       ];
-
       const mergedNA = [
         ...firebaseNA,
-        ...defaultNA.filter(d => !firebaseNA.some(f =>
-          f.name.toLowerCase() === d.name.toLowerCase()
-        ))
+        ...defaultNA.filter(d => !firebaseNA.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
       ];
-
       setBestSellers(mergedBS);
       setNewArrivals(mergedNA);
-
     }, () => {});
-
     return () => unsub();
   }, []);
 
   return (
-    // home-page class removes the 64px padding-top so hero can be truly full-screen
+    /* home-page removes top padding so hero fills entire screen from top */
     <div className="page-wrapper home-page">
+      {/* 1. Full-screen hero */}
       <Hero />
+
+      {/* 2. Full-screen categories (fills viewport on scroll) */}
       <Categories />
+
+      {/* 3. Best Sellers scroller */}
       <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop" />
+
+      {/* 4. New Arrivals scroller */}
       <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop" />
+
+      {/* 5. Reviews */}
       <Reviews />
     </div>
   );

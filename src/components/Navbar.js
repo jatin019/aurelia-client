@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingBag, X } from 'lucide-react';
 import { CartContext } from '../App';
@@ -8,11 +8,25 @@ export default function Navbar() {
   const { cartCount, setCartOpen } = useContext(CartContext);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVal, setSearchVal]   = useState('');
+  const [scrolled, setScrolled]     = useState(false);
   const location = useLocation();
+
+  const isHome = location.pathname === '/';
+
+  // Detect scroll — become solid once user scrolls past hero
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    setScrolled(window.scrollY > 60);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // hero-mode = on home page AND not yet scrolled
+  const heroMode = isHome && !scrolled;
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${heroMode ? 'hero-mode' : ''}`}>
         <div className="nav-left">
           <Link to="/"            className={`nav-link ${location.pathname === '/'            ? 'active' : ''}`}>HOME</Link>
           <Link to="/shop"        className={`nav-link ${location.pathname === '/shop'        ? 'active' : ''}`}>SHOP</Link>

@@ -13,12 +13,15 @@
 }
 
 html { scroll-behavior: smooth; }
+
 body {
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--charcoal);
   overflow-x: hidden;
+  width: 100%;
 }
+
 img { display: block; width: 100%; height: 100%; object-fit: cover; }
 button { cursor: pointer; font-family: var(--font-body); }
 a { text-decoration: none; color: inherit; }
@@ -38,37 +41,21 @@ a { text-decoration: none; color: inherit; }
 .view-all-link {
   font-family: 'Jost', sans-serif;
   font-size: 11px; font-weight: 400;
-  letter-spacing: 0.05em;
-  color: var(--charcoal);
+  letter-spacing: 0.05em; color: var(--charcoal);
   display: flex; align-items: center; gap: 5px;
   background: none; border: 1px solid #ccc;
-  padding: 5px 14px; border-radius: 100px;
+  padding: 6px 16px; border-radius: 100px;
   transition: all 0.25s; white-space: nowrap; cursor: pointer;
 }
-.view-all-link:hover {
-  border-color: #1a1a1a; background: #1a1a1a; color: #fff;
-}
+.view-all-link:hover { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
 
-/* Non-hero pages sit below fixed navbar */
-.page-wrapper {
-  padding-top: var(--navbar-h);
-  min-height: 100vh;
-}
+/* Non-hero pages */
+.page-wrapper { padding-top: var(--navbar-h); min-height: 100vh; }
 
-/* Hero page: hero itself is full-screen, navbar overlaps it */
-.page-wrapper.home-page {
-  padding-top: 0;
-}
+/* Hero page — hero overlaps navbar, NO gap */
+.page-wrapper.home-page { padding-top: 0; }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-40px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(40px); }
-  to   { opacity: 1; transform: translateX(0); }
 }

@@ -1,65 +1,45 @@
-.reviews {
-  background: #F5F3EE;
-  padding: 60px 40px 80px;
-}
-.reviews-header { text-align: center; margin-bottom: 48px; }
+.reviews { background: #F5F3EE; padding: 52px 5vw 68px; width: 100%; }
+.reviews-header { text-align: center; margin-bottom: 40px; }
 .reviews-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(30px, 4vw, 50px); font-weight: 400;
-  color: #1a1a1a; margin-bottom: 14px;
+  font-size: clamp(26px, 3vw, 44px); font-weight: 400;
+  color: #1a1a1a; margin-bottom: 10px;
 }
 .reviews-sub {
-  font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 300;
-  color: #777; max-width: 440px; margin: 0 auto; line-height: 1.7;
+  font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300;
+  color: #777; max-width: 400px; margin: 0 auto; line-height: 1.7;
 }
 .reviews-grid {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 20px; max-width: 1200px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; max-width: 1300px; margin: 0 auto;
 }
 .review-card {
-  background: #fff; border-radius: 14px; padding: 28px 24px;
+  background: #fff; border-radius: 12px; padding: 22px 20px;
   border: 1px solid #e8e5e0;
-  display: flex; flex-direction: column; gap: 16px;
+  display: flex; flex-direction: column; gap: 13px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
-.review-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.07); }
+.review-card:hover { transform: translateY(-4px); box-shadow: 0 16px 44px rgba(0,0,0,0.07); }
 .review-top { display: flex; align-items: center; justify-content: space-between; }
-.stars { color: #1a1a1a; font-size: 15px; letter-spacing: 2px; }
-.review-quote { font-family: 'Cormorant Garamond', serif; font-size: 48px; color: #ddd; line-height: 1; }
-.review-text {
-  font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300;
-  color: #444; line-height: 1.8; flex: 1;
-}
-.review-author { padding-top: 14px; border-top: 1px solid #f0ece6; }
-.review-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 500; color: #1a1a1a; margin-bottom: 2px; }
-.review-loc  { font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 300; color: #999; letter-spacing: 0.04em; }
+.stars { color: #1a1a1a; font-size: 13px; letter-spacing: 2px; }
+.review-quote { font-family: 'Cormorant Garamond', serif; font-size: 40px; color: #ddd; line-height: 1; }
+.review-text  { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: #444; line-height: 1.75; flex: 1; }
+.review-author { padding-top: 10px; border-top: 1px solid #f0ece6; }
+.review-name { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 2px; }
+.review-loc  { font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 300; color: #aaa; letter-spacing: 0.04em; }
 
-@media (max-width: 900px) {
-  .reviews-grid { grid-template-columns: 1fr; }
-  .reviews { padding: 48px 24px 60px; }
-}
-@media (max-width: 480px) {
-  .reviews { padding: 40px 16px 48px; }
-  .review-card { padding: 20px 18px; }
-}
-
-/* ── SKELETON LOADER ── */
-.reviews-loading {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 20px; max-width: 1200px; margin: 0 auto;
-}
+/* Skeleton */
+.reviews-loading { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; max-width: 1300px; margin: 0 auto; }
 .review-skeleton {
-  border-radius: 14px;
-  border: 1px solid #e8e5e0;
-  height: 220px;
+  border-radius: 12px; border: 1px solid #e8e5e0; height: 180px;
   background: linear-gradient(90deg, #f0ece6 25%, #e8e4de 50%, #f0ece6 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-@media (max-width: 900px) {
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+@media (max-width: 640px) {
+  .reviews { padding: 40px 4vw 52px; }
+  .reviews-grid { grid-template-columns: 1fr; }
   .reviews-loading { grid-template-columns: 1fr; }
 }

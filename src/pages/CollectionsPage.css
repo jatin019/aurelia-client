@@ -1,29 +1,37 @@
 .collections-page { background: #F5F3EE; min-height: 100vh; }
 
 .collections-header {
-  text-align: center; padding: 52px 40px 40px;
+  text-align: center; padding: 36px 5vw 28px;
   border-bottom: 1px solid #e0ddd8;
 }
 .collections-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(36px, 5vw, 60px); font-weight: 400;
-  color: #1a1a1a; letter-spacing: 0.04em; margin-bottom: 10px;
+  font-size: clamp(30px, 4vw, 52px); font-weight: 400;
+  color: #1a1a1a; letter-spacing: 0.04em; margin-bottom: 8px;
 }
-.collections-sub { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: #888; }
+.collections-sub { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300; color: #888; }
 
+/* Auto-fill — always complete columns */
 .collections-grid {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 24px; padding: 40px 40px 80px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  padding: 28px 5vw 64px;
 }
 
 .col-card {
-  cursor: pointer; border-radius: 14px; overflow: hidden;
+  cursor: pointer; border-radius: 12px; overflow: hidden;
   background: #fff; border: 1px solid #e8e5e0;
   transition: transform 0.3s, box-shadow 0.3s;
 }
-.col-card:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(0,0,0,0.09); }
+.col-card:hover { transform: translateY(-5px); box-shadow: 0 18px 44px rgba(0,0,0,0.09); }
 
-.col-card-img { position: relative; height: 260px; overflow: hidden; }
+/* Image height: proportional, not screen-tall */
+.col-card-img {
+  position: relative;
+  height: clamp(160px, 18vw, 230px);
+  overflow: hidden;
+}
 .col-card-img img {
   width: 100%; height: 100%; object-fit: cover;
   transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
@@ -31,28 +39,22 @@
 .col-card:hover .col-card-img img { transform: scale(1.06); }
 
 .col-tag {
-  position: absolute; top: 14px; left: 14px;
+  position: absolute; top: 10px; left: 10px;
   background: #1a1a1a; color: #fff;
-  font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 600;
-  letter-spacing: 0.12em; padding: 4px 12px; border-radius: 100px;
+  font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.12em; padding: 3px 10px; border-radius: 100px; text-transform: uppercase;
 }
 
-.col-card-info { padding: 22px 22px 26px; }
-.col-card-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
-.col-card-sub   { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: #888; line-height: 1.6; margin-bottom: 14px; }
-.col-card-link  { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500; color: #1a1a1a; text-decoration: underline; text-underline-offset: 3px; }
+.col-card-info { padding: 16px 16px 20px; }
+.col-card-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(17px, 1.8vw, 22px); font-weight: 500; color: #1a1a1a; margin-bottom: 5px; }
+.col-card-sub   { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300; color: #888; line-height: 1.5; margin-bottom: 10px; }
+.col-card-link  { font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500; color: #1a1a1a; text-decoration: underline; text-underline-offset: 3px; }
 
-@media (max-width: 1000px) { .collections-grid { grid-template-columns: repeat(2,1fr); } }
-@media (max-width: 640px)  { .collections-grid { grid-template-columns: 1fr; padding: 28px 20px 60px; } }
-@media (max-width: 480px) {
-  .collections-header {
-    padding: 40px 20px 28px;
-  }
-  .collections-grid {
-    padding: 20px 14px 48px;
-    gap: 16px;
-  }
-  .col-card-img {
-    height: 200px;
-  }
+@media (max-width: 640px) {
+  .collections-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 4vw 48px; }
+  .collections-header { padding: 28px 4vw 20px; }
+  .col-card-img { height: 140px; }
+}
+@media (max-width: 380px) {
+  .collections-grid { grid-template-columns: 1fr; }
 }

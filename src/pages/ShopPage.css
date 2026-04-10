@@ -1,51 +1,62 @@
 .shop-page { background: #F5F3EE; min-height: 100vh; }
 
-/* No extra top padding — page-wrapper already handles navbar offset */
+/* Compact header — less white space */
 .shop-header {
   text-align: center;
-  padding: 36px 40px 24px;
+  padding: 28px 5vw 20px;
   border-bottom: 1px solid #e0ddd8;
 }
 .shop-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(32px, 4vw, 52px); font-weight: 400;
-  color: #1a1a1a; letter-spacing: 0.04em; margin-bottom: 8px;
+  font-size: clamp(30px, 3.8vw, 50px); font-weight: 400;
+  color: #1a1a1a; letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  line-height: 1.1;
 }
-.shop-sub { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: #888; }
+.shop-sub { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300; color: #aaa; }
 
+/* Sticky toolbar */
 .shop-toolbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 40px; gap: 16px; flex-wrap: wrap;
+  padding: 12px 5vw; gap: 10px; flex-wrap: wrap;
+  position: sticky; top: var(--navbar-h); z-index: 50;
+  background: #F5F3EE; border-bottom: 1px solid #e8e5e0;
 }
-.shop-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.shop-filters { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter-btn {
-  background: transparent; border: 1px solid #ddd; color: #666;
-  padding: 6px 16px; font-family: 'Jost', sans-serif;
-  font-size: 11px; font-weight: 400; letter-spacing: 0.06em;
+  background: transparent; border: 1px solid #ddd; color: #777;
+  padding: 5px 14px; font-family: 'Jost', sans-serif;
+  font-size: 10px; font-weight: 400; letter-spacing: 0.06em;
   text-transform: uppercase; border-radius: 100px; cursor: pointer;
-  transition: all 0.22s;
+  transition: all 0.22s; white-space: nowrap;
 }
-.filter-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+.filter-btn:hover  { border-color: #1a1a1a; color: #1a1a1a; }
 .filter-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
 
 .sort-select {
   background: #fff; border: 1px solid #ddd; color: #555;
-  padding: 6px 32px 6px 14px; font-family: 'Jost', sans-serif;
-  font-size: 12px; border-radius: 100px; cursor: pointer; outline: none;
+  padding: 5px 28px 5px 12px; font-family: 'Jost', sans-serif;
+  font-size: 11px; border-radius: 100px; cursor: pointer; outline: none;
   appearance: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
+  background-repeat: no-repeat; background-position: right 10px center;
 }
 
+/* ── GRID: auto-fill so columns are always whole, never cut ── */
 .shop-grid {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 20px; padding: 8px 40px 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 20px 5vw 72px;
+  align-items: start;
 }
+
 .shop-card { cursor: pointer; }
+
 .shop-card-img {
   position: relative; aspect-ratio: 1;
-  border-radius: 12px; overflow: hidden;
-  background: #edeae4; margin-bottom: 10px;
+  border-radius: 10px; overflow: hidden;
+  background: #edeae4; margin-bottom: 9px;
 }
 .shop-card-img img {
   width: 100%; height: 100%; object-fit: cover;
@@ -53,11 +64,18 @@
 }
 .shop-card:hover .shop-card-img img { transform: scale(1.06); }
 
+.shop-badge {
+  position: absolute; top: 9px; left: 9px; z-index: 2;
+  background: #1a1a1a; color: #fff;
+  font-family: 'Jost', sans-serif; font-size: 8px; font-weight: 600;
+  letter-spacing: 0.1em; padding: 3px 9px; border-radius: 100px;
+  text-transform: uppercase;
+}
 .shop-add-btn {
-  position: absolute; bottom: 10px; left: 50%;
+  position: absolute; bottom: 9px; left: 50%;
   transform: translateX(-50%) translateY(12px); opacity: 0;
   background: #1a1a1a; color: #fff; border: none;
-  padding: 8px 18px; font-family: 'Jost', sans-serif;
+  padding: 7px 16px; font-family: 'Jost', sans-serif;
   font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
   border-radius: 100px; white-space: nowrap; cursor: pointer;
   transition: opacity 0.3s, transform 0.3s, background 0.2s;
@@ -65,8 +83,30 @@
 .shop-card:hover .shop-add-btn { opacity: 1; transform: translateX(-50%) translateY(0); }
 .shop-add-btn.added { background: #2d6a4f; opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.shop-card-name { font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 400; color: #1a1a1a; margin-bottom: 3px; }
-.shop-card-price { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: #666; }
+.shop-card-cat {
+  font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-bottom: 3px;
+}
+.shop-card-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 500;
+  color: #1a1a1a; margin-bottom: 3px; line-height: 1.2;
+}
+.shop-card-desc {
+  font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 300;
+  color: #aaa; line-height: 1.4; margin-bottom: 7px;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.shop-card-bottom { display: flex; align-items: center; justify-content: space-between; }
+.shop-card-price  { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: #1a1a1a; }
+.shop-card-rating { font-family: 'Jost', sans-serif; font-size: 10px; color: #bbb; }
+.shop-card-rcount { font-size: 9px; }
 
-@media (max-width: 1100px) { .shop-grid { grid-template-columns: repeat(3,1fr); } }
-@media (max-width: 768px)  { .shop-grid { grid-template-columns: repeat(2,1fr); padding: 8px 20px 40px; } .shop-toolbar { padding: 14px 20px; } }
+/* Mobile */
+@media (max-width: 640px) {
+  .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px 4vw 56px; }
+  .shop-toolbar { padding: 10px 4vw; gap: 8px; }
+  .shop-header { padding: 22px 4vw 16px; }
+  .shop-title { font-size: clamp(26px, 8vw, 36px); }
+  .filter-btn { padding: 4px 11px; font-size: 9px; }
+}
