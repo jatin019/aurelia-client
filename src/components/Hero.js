@@ -45,7 +45,7 @@ export default function Hero() {
 
         {/* Left: vertical label */}
         <div className="hero-side-label">
-          <span>AURELIA FINE JEWELLERY — EST. 1994</span>
+          <span>KANYAMAA COLLECTIONS FINE JEWELLERY — EST. 1994</span>
         </div>
 
         {/* Center: main copy */}

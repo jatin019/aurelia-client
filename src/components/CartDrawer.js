@@ -3,7 +3,7 @@ import { CartContext } from '../App';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
-  const { cart, removeFromCart, cartOpen, setCartOpen } = useContext(CartContext);
+  const { cart, removeFromCart, updateQty, cartOpen, setCartOpen } = useContext(CartContext);
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
 
@@ -32,7 +32,12 @@ export default function CartDrawer() {
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.name}</p>
                 <p className="cart-item-price">${item.price.toLocaleString()}</p>
-                <p className="cart-item-qty">Qty: {item.qty}</p>
+                {/* Qty controls */}
+                <div className="cart-item-qty-row">
+                  <button className="qty-btn" onClick={() => updateQty(item.id, item.qty - 1)}>−</button>
+                  <span className="qty-val">{item.qty}</span>
+                  <button className="qty-btn" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
+                </div>
               </div>
               <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}>✕</button>
             </div>
@@ -49,7 +54,6 @@ export default function CartDrawer() {
             <button className="continue-btn" onClick={() => setCartOpen(false)}>Continue Shopping</button>
           </div>
         )}
-
       </div>
     </>
   );

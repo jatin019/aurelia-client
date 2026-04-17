@@ -9,7 +9,7 @@ import { bestSellers as defaultBS, newArrivals as defaultNA } from '../data/prod
 
 export default function HomePage() {
   const [bestSellers, setBestSellers] = useState(defaultBS);
-  const [newArrivals, setNewArrivals] = useState(defaultNA);
+  const [newArrivals,  setNewArrivals]  = useState(defaultNA);
 
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
@@ -18,34 +18,31 @@ export default function HomePage() {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const firebaseBS = all.filter(p => p.section === 'bestSellers');
       const firebaseNA = all.filter(p => p.section === 'newArrivals');
-      const mergedBS = [
+      setBestSellers([
         ...firebaseBS,
         ...defaultBS.filter(d => !firebaseBS.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
-      ];
-      const mergedNA = [
+      ]);
+      setNewArrivals([
         ...firebaseNA,
         ...defaultNA.filter(d => !firebaseNA.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
-      ];
-      setBestSellers(mergedBS);
-      setNewArrivals(mergedNA);
+      ]);
     }, () => {});
     return () => unsub();
   }, []);
 
   return (
-    /* home-page removes top padding so hero fills entire screen from top */
     <div className="page-wrapper home-page">
       {/* 1. Full-screen hero */}
       <Hero />
 
-      {/* 2. Full-screen categories (fills viewport on scroll) */}
+      {/* 2. New Arrivals — right after hero */}
+      <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop" />
+
+      {/* 3. Categories (both rows) */}
       <Categories />
 
-      {/* 3. Best Sellers scroller */}
+      {/* 4. Best Sellers */}
       <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop" />
-
-      {/* 4. New Arrivals scroller */}
-      <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop" />
 
       {/* 5. Reviews */}
       <Reviews />

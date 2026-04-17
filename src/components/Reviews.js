@@ -47,7 +47,7 @@ export default function Reviews() {
       <div className="reviews-header">
         <h2 className="reviews-title">Loved by our muses</h2>
         <p className="reviews-sub">
-          Discover why thousands choose Aurelia for their most special and unforgettable moments.
+          Discover why thousands choose Kanyamaa Collections for their most special and unforgettable moments.
         </p>
       </div>
 
