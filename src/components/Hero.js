@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 import './Hero.css';
 
 const HERO_IMAGES = [
@@ -9,15 +11,16 @@ const HERO_IMAGES = [
 ];
 
 const STATS = [
-  { value: '30+', label: 'Years of Craft' },
-  { value: '14k', label: 'Happy Clients' },
+  { value: '30+',  label: 'Years of Craft'    },
+  { value: '14k',  label: 'Happy Clients'     },
   { value: '100%', label: 'Ethically Sourced' },
 ];
 
 export default function Hero() {
   const navigate = useNavigate();
-  const [imgIdx, setImgIdx] = useState(0);
+  const [imgIdx,  setImgIdx]  = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [banner,  setBanner]  = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -25,8 +28,29 @@ export default function Hero() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'site', 'sale_banner'), snap => {
+      if (snap.exists()) setBanner(snap.data());
+    }, () => {});
+    return () => unsub();
+  }, []);
+
+  const showBanner = banner?.active && banner?.text;
+
   return (
-    <section className={`hero ${mounted ? 'hero--mounted' : ''}`}>
+    <section className={`hero ${mounted ? 'hero--mounted' : ''} ${showBanner ? 'hero--has-banner' : ''}`}>
+
+      {/* ── SALE BANNER — pinned below navbar ── */}
+      {showBanner && (
+        <div
+          className="hero-sale-banner"
+          style={{ background: banner.bgColor || '#7B1C3E', color: banner.textColor || '#fff' }}
+        >
+          <span className="hsb-icon">🏷</span>
+          <span className="hsb-text">{banner.text}</span>
+          <button className="hsb-cta" onClick={() => navigate('/shop')}>SHOP NOW →</button>
+        </div>
+      )}
 
       {/* ── BACKGROUND SLIDESHOW ── */}
       <div className="hero-bg">
@@ -36,19 +60,17 @@ export default function Hero() {
           </div>
         ))}
         <div className="hero-bg-overlay" />
-        {/* Grain texture */}
         <div className="hero-grain" />
       </div>
 
-      {/* ── CONTENT ── */}
+      {/* ── BODY: left content + absolutely positioned stats card ── */}
       <div className="hero-body">
 
-        {/* Left: vertical label */}
         <div className="hero-side-label">
           <span>KANYAMAA COLLECTIONS FINE JEWELLERY — EST. 1994</span>
         </div>
 
-        {/* Center: main copy */}
+        {/* LEFT — main copy */}
         <div className="hero-center">
           <div className="hero-eyebrow">
             <div className="eyebrow-line" />
@@ -70,22 +92,25 @@ export default function Hero() {
           <div className="hero-btns">
             <button className="btn-primary" onClick={() => navigate('/shop')}>
               <span>SHOP COLLECTION</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
             </button>
             <button className="btn-ghost" onClick={() => navigate('/collections')}>THE GIFT GUIDE</button>
           </div>
         </div>
 
-        {/* Right: floating stats card */}
-        <div className="hero-stats-card">
-          {STATS.map((s, i) => (
-            <div className="hero-stat" key={i}>
-              <span className="stat-value">{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          ))}
-        </div>
+      </div>
 
+      {/* ── STATS CARD — absolute, bottom-right corner ── */}
+      <div className="hero-stats-card">
+        {STATS.map((s, i) => (
+          <div className="hero-stat-item" key={i}>
+            <span className="stat-value">{s.value}</span>
+            <span className="stat-label">{s.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* ── BOTTOM BAR ── */}
@@ -100,9 +125,7 @@ export default function Hero() {
           ))}
         </div>
         <div className="hero-scroll-hint">
-          <div className="scroll-mouse">
-            <div className="scroll-wheel" />
-          </div>
+          <div className="scroll-mouse"><div className="scroll-wheel" /></div>
           <span>SCROLL</span>
         </div>
       </div>

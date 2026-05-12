@@ -115,6 +115,51 @@
 
 .pdp-loading { min-height:70vh; display:flex; align-items:center; justify-content:center; }
 .pdp-spinner { width:32px; height:32px; border:2px solid #e8e5e0; border-top-color:#1a1a1a; border-radius:50%; animation:spin 0.8s linear infinite; }
+/* Dynamic sizes — supports any size string with stock status */
+.pdp-size-btn-dynamic {
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  padding: 8px 16px;
+  min-width: 44px;
+  border-radius: 100px;
+  border: 1px solid #ddd;
+  background: transparent;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+}
+.pdp-size-btn-dynamic:hover:not(.out-of-stock) {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
+}
+.pdp-size-btn-dynamic.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+.pdp-size-btn-dynamic.out-of-stock {
+  color: #ccc;
+  border-color: #eee;
+  cursor: not-allowed;
+  position: relative;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  background: #fafafa;
+}
+.pdp-size-btn-dynamic.out-of-stock::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 8%; right: 8%;
+  height: 1px;
+  background: #ccc;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+.pdp-size-btn-dynamic.out-of-stock.active {
+  background: #f0f0f0;
+  color: #999;
+}
 @keyframes spin { to { transform:rotate(360deg); } }
 
 @media (max-width:860px) {

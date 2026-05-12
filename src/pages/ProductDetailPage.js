@@ -4,22 +4,22 @@ import { db } from '../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { CartContext } from '../App';
 import { WishlistContext } from '../App';
-import { allProducts, getEffectivePrice, getDiscountPercent } from '../data/products';
+import { allProducts, getEffectivePrice, getDiscountPercent, formatINR } from '../data/products';
+import { getSizeConfig, isSizeInStock } from '../data/sizeConfig';
 import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
 
 const BADGES = [
-  { icon:'✦', label:'Free Shipping',     sub:'On orders over $500'      },
+  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹50,000' },
   { icon:'↩', label:'Free Returns',      sub:'30-day return policy'     },
   { icon:'♛', label:'Authenticity',      sub:'Certified fine jewellery' },
   { icon:'⚑', label:'Ethically Sourced', sub:'100% responsible gems'    },
 ];
-const MATERIALS = ['18k Gold', 'Sterling Silver', 'Platinum', 'Rose Gold'];
-const SIZES     = ['XS', 'S', 'M', 'L', 'XL'];
+
 const DEFAULT_CONTENT = {
   details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials. Each piece comes with a certificate of authenticity.`,
   care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes and harsh chemicals.`,
-  shipping: () => `Complimentary express shipping on orders over $500. Ships within 1–2 business days. Free returns within 30 days.`,
+  shipping: () => `Complimentary express shipping on orders over ₹50,000. Ships within 1–2 business days. Free returns within 30 days.`,
 };
 
 export default function ProductDetailPage() {
@@ -28,19 +28,18 @@ export default function ProductDetailPage() {
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, inWishlist } = useContext(WishlistContext);
 
-  const [product,          setProduct]          = useState(null);
-  const [related,          setRelated]          = useState([]);
-  const [loading,          setLoading]          = useState(true);
-  const [tabContent,       setTabContent]       = useState({ details:'', care:'', shipping:'' });
-  const [added,            setAdded]            = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState(MATERIALS[0]);
-  const [selectedSize,     setSelectedSize]     = useState(SIZES[2]);
-  const [qty,              setQty]              = useState(1);
-  const [activeTab,        setActiveTab]        = useState('details');
-  const [activeMediaIdx,   setActiveMediaIdx]   = useState(0);
-  const [wishlisted,       setWishlisted]       = useState(false);
+  const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tabContent, setTabContent] = useState({ details:'', care:'', shipping:'' });
+  const [added, setAdded] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [qty, setQty] = useState(1);
+  const [activeTab, setActiveTab] = useState('details');
+  const [activeMediaIdx, setActiveMediaIdx] = useState(0);
+  const [wishlisted, setWishlisted] = useState(false);
 
-  // Check wishlist state
   useEffect(() => { if (product) setWishlisted(inWishlist(product.id)); }, [product, inWishlist]);
 
   useEffect(() => {
@@ -50,6 +49,10 @@ export default function ProductDetailPage() {
       setProduct(staticProduct);
       setRelated(allProducts.filter(p => p.category === staticProduct.category && String(p.id) !== String(id)).slice(0,4));
       setLoading(false);
+      const sc = getSizeConfig(staticProduct.category);
+      const firstAvailable = sc.sizes.find(s => isSizeInStock(staticProduct, s)) || sc.sizes[0];
+      setSelectedSize(firstAvailable);
+      setSelectedMaterial(sc.materials[0]);
       return;
     }
     const fetchFB = async () => {
@@ -58,6 +61,10 @@ export default function ProductDetailPage() {
         if (snap.exists()) {
           const fbp = { id:snap.id, ...snap.data() };
           setProduct(fbp);
+          const sc = getSizeConfig(fbp.category);
+          const firstAvailable = sc.sizes.find(s => isSizeInStock(fbp, s)) || sc.sizes[0];
+          setSelectedSize(firstAvailable);
+          setSelectedMaterial(sc.materials[0]);
           try {
             const relSnap = await getDocs(query(collection(db,'products'), where('category','==',fbp.category)));
             setRelated(relSnap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.id!==id).slice(0,4));
@@ -80,7 +87,16 @@ export default function ProductDetailPage() {
   const getTabText = (tab) => tabContent[tab] || (product ? (tab==='details' ? DEFAULT_CONTENT.details(product.name) : DEFAULT_CONTENT[tab]()) : '');
 
   const handleAdd = () => {
-    for (let i = 0; i < qty; i++) addToCart(product);
+    if (!isSizeInStock(product, selectedSize)) {
+      alert('This size is currently out of stock.');
+      return;
+    }
+    const productWithOptions = {
+      ...product,
+      selectedSize,
+      selectedMaterial,
+    };
+    for (let i = 0; i < qty; i++) addToCart(productWithOptions);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -93,12 +109,13 @@ export default function ProductDetailPage() {
   if (loading) return <div className="pdp-loading"><div className="pdp-spinner" /></div>;
   if (!product) return <div className="pdp-not-found"><h2>Product not found</h2><button onClick={() => navigate('/shop')}>← Back to Shop</button></div>;
 
-  const images        = product.images?.length ? product.images : [product.image].filter(Boolean);
-  const hasVideo      = Boolean(product.video);
+  const images = product.images?.length ? product.images : [product.image].filter(Boolean);
+  const hasVideo = Boolean(product.video);
   const effectivePrice = getEffectivePrice(product);
-  const discountPct    = getDiscountPercent(product);
-  const isOnSale       = discountPct > 0;
-  const activeIsVideo  = hasVideo && activeMediaIdx === images.length;
+  const discountPct = getDiscountPercent(product);
+  const isOnSale = discountPct > 0;
+  const activeIsVideo = hasVideo && activeMediaIdx === images.length;
+  const sizeConfig = getSizeConfig(product.category);
 
   return (
     <div className="pdp-wrapper">
@@ -110,7 +127,6 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="pdp-grid">
-        {/* IMAGE */}
         <div className="pdp-image-section">
           <div className="pdp-image-main">
             {isOnSale && <div className="pdp-sale-badge">-{discountPct}% OFF</div>}
@@ -134,7 +150,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* INFO */}
         <div className="pdp-info">
           <div className="pdp-eyebrow">
             <span className="pdp-cat">{(product.category||'').toUpperCase()}</span>
@@ -144,23 +159,46 @@ export default function ProductDetailPage() {
           <h1 className="pdp-name">{product.name}</h1>
 
           <div className="pdp-price-row">
-            <p className="pdp-price">${effectivePrice.toLocaleString()}</p>
-            {isOnSale && <><p className="pdp-original-price">${product.price.toLocaleString()}</p><span className="pdp-sale-tag">-{discountPct}% OFF</span></>}
+            <p className="pdp-price">{formatINR(effectivePrice)}</p>
+            {isOnSale && <><p className="pdp-original-price">{formatINR(product.price)}</p><span className="pdp-sale-tag">-{discountPct}% OFF</span></>}
           </div>
-          <p className="pdp-price-note">or 4 interest-free payments of ${Math.round(effectivePrice/4).toLocaleString()}</p>
+          <p className="pdp-price-note">or 4 interest-free payments of {formatINR(Math.round(effectivePrice/4))}</p>
 
+          {/* Material/Type - CATEGORY SPECIFIC */}
           <div className="pdp-option-group">
-            <p className="pdp-option-label">Material: <strong>{selectedMaterial}</strong></p>
+            <p className="pdp-option-label">{sizeConfig.materialLabel}: <strong>{selectedMaterial}</strong></p>
             <div className="pdp-options">
-              {MATERIALS.map(m => <button key={m} className={`pdp-option-btn ${selectedMaterial===m?'active':''}`} onClick={() => setSelectedMaterial(m)}>{m}</button>)}
+              {sizeConfig.materials.map(m => <button key={m} className={`pdp-option-btn ${selectedMaterial===m?'active':''}`} onClick={() => setSelectedMaterial(m)}>{m}</button>)}
             </div>
           </div>
 
           <div className="pdp-option-group">
-            <p className="pdp-option-label">Size: <strong>{selectedSize}</strong></p>
+            <p className="pdp-option-label">
+              {sizeConfig.label}: <strong>{selectedSize}</strong>
+              {!isSizeInStock(product, selectedSize) && (
+                <span style={{ color: '#e74c3c', fontSize: 11, marginLeft: 8 }}>· Out of stock</span>
+              )}
+            </p>
             <div className="pdp-options">
-              {SIZES.map(s => <button key={s} className={`pdp-size-btn ${selectedSize===s?'active':''}`} onClick={() => setSelectedSize(s)}>{s}</button>)}
+              {sizeConfig.sizes.map(s => {
+                const inStock = isSizeInStock(product, s);
+                return (
+                  <button
+                    key={s}
+                    className={`pdp-size-btn-dynamic ${selectedSize===s ? 'active' : ''} ${!inStock ? 'out-of-stock' : ''}`}
+                    onClick={() => setSelectedSize(s)}
+                    title={!inStock ? 'Out of stock' : ''}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
+            {sizeConfig.unit && (
+              <p style={{ fontSize: 10, color: '#aaa', marginTop: 6, fontFamily: 'Jost, sans-serif' }}>
+                Sizes shown in {sizeConfig.unit}
+              </p>
+            )}
           </div>
 
           <div className="pdp-cart-row">
@@ -169,12 +207,16 @@ export default function ProductDetailPage() {
               <span>{qty}</span>
               <button onClick={() => setQty(q => q+1)}>+</button>
             </div>
-            <button className={`pdp-add-btn ${added?'added':''}`} onClick={handleAdd}>
-              {added ? '✓ Added to Bag' : 'ADD TO BAG'}
+            <button
+              className={`pdp-add-btn ${added?'added':''}`}
+              onClick={handleAdd}
+              disabled={!isSizeInStock(product, selectedSize)}
+              style={{ opacity: !isSizeInStock(product, selectedSize) ? 0.5 : 1 }}
+            >
+              {added ? '✓ Added to Bag' : !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK' : 'ADD TO BAG'}
             </button>
           </div>
 
-          {/* Wishlist button */}
           <button className={`pdp-wishlist-btn ${wishlisted?'wishlisted':''}`} onClick={handleWishlist}>
             <Heart size={15} fill={wishlisted ? '#e05c7a' : 'none'} color={wishlisted ? '#e05c7a' : 'currentColor'} />
             {wishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}
@@ -217,8 +259,8 @@ export default function ProductDetailPage() {
                   </div>
                   <p className="pdp-related-name">{p.name}</p>
                   <div className="pdp-related-price-row">
-                    <span className="pdp-related-price">${ep.toLocaleString()}</span>
-                    {dp>0 && <span className="pdp-related-orig">${p.price.toLocaleString()}</span>}
+                    <span className="pdp-related-price">{formatINR(ep)}</span>
+                    {dp>0 && <span className="pdp-related-orig">{formatINR(p.price)}</span>}
                   </div>
                 </div>
               );

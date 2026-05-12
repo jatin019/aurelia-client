@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../App';
-import { getEffectivePrice, getDiscountPercent } from '../data/products';
+import { getEffectivePrice, getDiscountPercent, formatINR } from '../data/products';
 import './ProductCard.css';
 
 export default function ProductCard({ product }) {
@@ -34,8 +34,8 @@ export default function ProductCard({ product }) {
         <p className="product-name">{product.name}</p>
         <div className="product-bottom">
           <div className="product-price-row">
-            <span className={`product-price ${isOnSale ? 'on-sale' : ''}`}>${effectivePrice.toLocaleString()}</span>
-            {isOnSale && <span className="product-orig-price">${product.price.toLocaleString()}</span>}
+            <span className={`product-price ${isOnSale ? 'on-sale' : ''}`}>{formatINR(effectivePrice)}</span>
+            {isOnSale && <span className="product-orig-price">{formatINR(product.price)}</span>}
           </div>
           {product.rating && <span className="product-rating">★ {product.rating}</span>}
         </div>

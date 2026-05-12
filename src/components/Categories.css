@@ -2,12 +2,12 @@
 
 .section-divider { display:flex; align-items:center; gap:20px; padding:24px 5vw 18px; }
 .divider-line { flex:1; height:1px; background:linear-gradient(to right, transparent, #c9c3bb, transparent); }
-.divider-label { font-family:'Jost',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.25em; color:#a09890; white-space:nowrap; }
+.divider-label { font-family:'Jost',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.25em; color:#a09890; white-space:nowrap; }
 
 .row-gap { padding:18px 5vw; background:#F5F3EE; }
 .row-gap-inner { display:flex; align-items:center; justify-content:center; gap:14px; }
 .gap-ornament { font-size:10px; color:#c9c3bb; }
-.gap-text { font-family:'Cormorant Garamond',serif; font-size:16px; font-style:italic; color:#9a9088; }
+.gap-text { font-family:'Cormorant Garamond',serif; font-size:19px; font-style:italic; color:#9a9088; }
 
 .categories { padding:0 5vw; background:#F5F3EE; }
 .cat-row2 { padding-top:0; }

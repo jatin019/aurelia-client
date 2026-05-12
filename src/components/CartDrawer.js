@@ -1,17 +1,26 @@
 import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../App';
+import { getEffectivePrice, formatINR } from '../data/products';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
   const { cart, removeFromCart, updateQty, cartOpen, setCartOpen } = useContext(CartContext);
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const navigate = useNavigate();
+  const total = cart.reduce((s, i) => s + getEffectivePrice(i) * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
+
+  const handleCheckout = () => {
+    setCartOpen(false);
+    navigate('/checkout');
+  };
+
+  const cartKey = (item) => `${item.id}-${item.selectedSize || ''}-${item.selectedMaterial || ''}`;
 
   return (
     <>
       <div className={`cart-backdrop ${cartOpen ? 'open' : ''}`} onClick={() => setCartOpen(false)} />
       <div className={`cart-drawer ${cartOpen ? 'open' : ''}`}>
-
         <div className="cart-header">
           <h3 className="cart-title">Your Bag <span>({count})</span></h3>
           <button className="cart-close-btn" onClick={() => setCartOpen(false)}>✕</button>
@@ -25,14 +34,20 @@ export default function CartDrawer() {
             </div>
           )}
           {cart.map(item => (
-            <div className="cart-item" key={item.id}>
+            <div className="cart-item" key={cartKey(item)}>
               <div className="cart-item-img">
                 <img src={item.image} alt={item.name} />
               </div>
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.name}</p>
-                <p className="cart-item-price">${item.price.toLocaleString()}</p>
-                {/* Qty controls */}
+                {(item.selectedSize || item.selectedMaterial) && (
+                  <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#999', marginBottom: 4 }}>
+                    {item.selectedMaterial && `${item.selectedMaterial}`}
+                    {item.selectedMaterial && item.selectedSize && ' · '}
+                    {item.selectedSize && `Size: ${item.selectedSize}`}
+                  </p>
+                )}
+                <p className="cart-item-price">{formatINR(getEffectivePrice(item))}</p>
                 <div className="cart-item-qty-row">
                   <button className="qty-btn" onClick={() => updateQty(item.id, item.qty - 1)}>−</button>
                   <span className="qty-val">{item.qty}</span>
@@ -48,9 +63,9 @@ export default function CartDrawer() {
           <div className="cart-footer">
             <div className="cart-total">
               <span>Total</span>
-              <span>${total.toLocaleString()}</span>
+              <span>{formatINR(total)}</span>
             </div>
-            <button className="checkout-btn">PROCEED TO CHECKOUT</button>
+            <button className="checkout-btn" onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
             <button className="continue-btn" onClick={() => setCartOpen(false)}>Continue Shopping</button>
           </div>
         )}

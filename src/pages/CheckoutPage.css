@@ -1,0 +1,260 @@
+.checkout-page { background: #F5F3EE; min-height: 100vh; padding-top: var(--navbar-h); }
+
+.checkout-header {
+  text-align: center; padding: 32px 5vw 24px;
+  border-bottom: 1px solid #e0ddd8;
+}
+.checkout-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 3.4vw, 44px); font-weight: 400;
+  color: #1a1a1a; margin-bottom: 6px;
+}
+.checkout-sub { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300; color: #888; }
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 5vw 64px;
+}
+
+/* Form sections */
+.checkout-section {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e8e5e0;
+  padding: 24px 28px;
+  margin-bottom: 18px;
+}
+.checkout-section h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 500; color: #1a1a1a;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.checkout-section h3 .step-num {
+  width: 26px; height: 26px;
+  background: #1a1a1a; color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+.checkout-field { display: flex; flex-direction: column; gap: 6px; }
+.checkout-field label {
+  font-family: 'Jost', sans-serif; font-size: 11px;
+  font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #999;
+}
+.checkout-field input,
+.checkout-field select,
+.checkout-field textarea {
+  font-family: 'Jost', sans-serif; font-size: 14px; color: #1a1a1a;
+  padding: 11px 14px;
+  border: 1px solid #e0ddd8;
+  border-radius: 10px;
+  background: #fafafa; outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.checkout-field input:focus,
+.checkout-field select:focus,
+.checkout-field textarea:focus { border-color: #1a1a1a; background: #fff; }
+.checkout-field textarea { resize: vertical; min-height: 80px; }
+
+.field-error { font-family: 'Jost', sans-serif; font-size: 11px; color: #e74c3c; margin-top: 4px; }
+
+/* Payment methods */
+.payment-methods { display: flex; flex-direction: column; gap: 10px; }
+.payment-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid #e0ddd8;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.payment-option:hover { border-color: #999; background: #fafafa; }
+.payment-option.selected { border-color: #1a1a1a; background: #fafafa; }
+.payment-option input { accent-color: #1a1a1a; }
+.payment-option-label {
+  font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; color: #1a1a1a;
+}
+.payment-option-sub {
+  font-family: 'Jost', sans-serif; font-size: 11px; color: #888; margin-top: 2px;
+}
+.payment-icons { margin-left: auto; display: flex; gap: 6px; }
+
+/* Order summary */
+.order-summary {
+  position: sticky; top: calc(var(--navbar-h) + 20px);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e8e5e0;
+  padding: 24px 26px;
+  height: fit-content;
+}
+.order-summary h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 500; color: #1a1a1a;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0ece6;
+}
+
+.summary-items { display: flex; flex-direction: column; gap: 14px; max-height: 320px; overflow-y: auto; padding-right: 4px; margin-bottom: 14px; }
+.summary-items::-webkit-scrollbar { width: 3px; }
+.summary-items::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+.summary-item { display: flex; gap: 12px; align-items: flex-start; }
+.summary-item-img {
+  width: 56px; height: 56px;
+  border-radius: 9px; overflow: hidden;
+  background: #f5f3ee; flex-shrink: 0; position: relative;
+}
+.summary-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.summary-qty-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: #1a1a1a; color: #fff;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.summary-item-info { flex: 1; min-width: 0; }
+.summary-item-name {
+  font-family: 'Jost', sans-serif; font-size: 13px;
+  color: #1a1a1a; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.summary-item-meta {
+  font-family: 'Jost', sans-serif; font-size: 11px;
+  color: #999; margin-bottom: 4px;
+}
+.summary-item-price {
+  font-family: 'Cormorant Garamond', serif; font-size: 14px;
+  font-style: italic; color: #555;
+}
+
+.summary-divider { border-top: 1px solid #f0ece6; margin: 14px 0; }
+
+.summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Jost', sans-serif; font-size: 13px; color: #555;
+  margin-bottom: 8px;
+}
+.summary-row.total {
+  font-family: 'Cormorant Garamond', serif; font-size: 22px;
+  color: #1a1a1a; font-weight: 500;
+  border-top: 1px solid #f0ece6;
+  padding-top: 14px; margin-top: 6px;
+}
+
+.coupon-row { display: flex; gap: 8px; margin: 14px 0; }
+.coupon-row input {
+  flex: 1; padding: 9px 12px;
+  border: 1px solid #e0ddd8; border-radius: 8px;
+  font-family: 'Jost', sans-serif; font-size: 12px;
+  background: #fafafa; outline: none;
+}
+.coupon-row button {
+  background: #1a1a1a; color: #fff; border: none;
+  padding: 9px 16px; border-radius: 8px;
+  font-family: 'Jost', sans-serif; font-size: 11px;
+  font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+}
+
+.place-order-btn {
+  width: 100%;
+  background: #1a1a1a; color: #fff; border: none;
+  padding: 16px;
+  font-family: 'Jost', sans-serif; font-size: 12px;
+  font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  border-radius: 100px; cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  margin-top: 18px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.place-order-btn:hover:not(:disabled) { background: #333; transform: translateY(-1px); }
+.place-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.checkout-trust {
+  display: flex; justify-content: center; gap: 18px;
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid #f0ece6;
+}
+.trust-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-family: 'Jost', sans-serif; font-size: 9px;
+  color: #888; letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* Empty cart */
+.checkout-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 60vh; gap: 14px; padding: 60px 5vw;
+}
+.checkout-empty p { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: #1a1a1a; }
+.checkout-empty span { font-family: 'Jost', sans-serif; font-size: 13px; color: #999; }
+.checkout-empty button {
+  background: #1a1a1a; color: #fff; border: none;
+  padding: 12px 28px;
+  font-family: 'Jost', sans-serif; font-size: 11px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  border-radius: 100px; cursor: pointer;
+  margin-top: 8px;
+}
+
+/* Success modal */
+.order-success-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 3000;
+  animation: fadeIn 0.3s ease;
+}
+.order-success-modal {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3001;
+  background: #fff; border-radius: 18px;
+  padding: 40px 36px;
+  width: min(440px, 92vw);
+  text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+  animation: popupIn 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.success-icon {
+  width: 70px; height: 70px;
+  background: #d4f5e2; color: #2d6a4f;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  font-size: 32px;
+}
+.order-success-modal h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 500; color: #1a1a1a;
+  margin-bottom: 8px;
+}
+.order-success-modal p {
+  font-family: 'Jost', sans-serif; font-size: 13px;
+  color: #777; line-height: 1.7; margin-bottom: 20px;
+}
+.order-id-display {
+  background: #f5f3ee; padding: 12px 18px;
+  border-radius: 10px; margin: 16px 0;
+  font-family: monospace; font-size: 13px; color: #333;
+}
+
+@media (max-width: 900px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .order-summary { position: static; }
+  .form-row, .form-row.triple { grid-template-columns: 1fr; }
+}

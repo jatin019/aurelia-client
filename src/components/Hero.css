@@ -1,16 +1,13 @@
-/* Hero sits below the FIXED navbar — it is position:relative, not absolute */
-/* The navbar is fixed so hero starts at top:0 and the navbar floats over it */
 .hero {
   position: relative;
   width: 100%;
-  height: 100vh;          /* full viewport height */
+  height: 100vh;
   min-height: 480px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
   background: #0e0c0a;
-  /* NO margin-top, NO padding-top here. The fixed navbar floats on top. */
 }
 
 /* ── BACKGROUND ── */
@@ -36,13 +33,47 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
 
-/* ── BODY — push content down from top so it sits in the visual middle ── */
+/* ── SALE BANNER ── */
+.hero-sale-banner {
+  position: absolute;
+  top: var(--navbar-h);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 20px;
+  font-family: 'Jost', sans-serif;
+}
+.hsb-icon { font-size: 13px; }
+.hsb-text {
+  font-size: 11px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+.hsb-cta {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 4px 14px;
+  font-family: 'Jost', sans-serif;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  border-radius: 100px; cursor: pointer;
+  opacity: 0.85; transition: opacity 0.2s;
+}
+.hsb-cta:hover { opacity: 1; }
+
+/* ── BODY ── */
 .hero-body {
   flex: 1;
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 0;
-  /* Top padding compensates for the floating navbar */
   padding: calc(var(--navbar-h) + 40px) 5vw 0;
+}
+.hero--has-banner .hero-body {
+  padding-top: calc(var(--navbar-h) + 40px + 38px);
 }
 
 /* ── SIDE LABEL ── */
@@ -110,18 +141,42 @@
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); color: #fff; transform: translateY(-2px); }
 
-/* ── STATS CARD ── */
+/* ── STATS CARD — horizontal, bottom-right corner ── */
 .hero-stats-card {
-  position: absolute; right: 5vw; bottom: 72px;
-  background: rgba(255,255,255,0.07); backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;
-  padding: 18px 22px; display: flex; flex-direction: column; gap: 16px;
-  opacity: 0; animation: fadeUp 1s ease 1.2s forwards;
+  position: absolute;
+  right: 5vw;
+  bottom: 18px;
+  top: auto;
+  transform: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 0;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 16px;
+  padding: 18px 22px;
+  opacity: 0;
+  animation: fadeUp 1s ease 1.2s forwards;
 }
-.hero-stat { text-align: right; }
+
+.hero-stat-item {
+  padding: 0 24px;
+  text-align: center;
+}
+.hero-stat-item + .hero-stat-item {
+  border-left: 1px solid rgba(255,255,255,0.12);
+}
+
 .stat-value {
   display: block; font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(22px, 2.2vw, 30px); font-weight: 500; color: #fff; line-height: 1; margin-bottom: 3px;
+  font-size: clamp(22px, 2.2vw, 30px); font-weight: 500; color: #fff;
+  line-height: 1; margin-bottom: 3px;
 }
 .stat-label {
   font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 400;
@@ -166,14 +221,20 @@
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .hero-body { padding-top: calc(var(--navbar-h) + 28px); flex-wrap: wrap; }
+  .hero--has-banner .hero-body { padding-top: calc(var(--navbar-h) + 28px + 38px); }
   .hero-side-label { display: none; }
-  .hero-stats-card { position: static; flex-direction: row; gap: 20px; margin-top: 20px; padding: 14px 16px; }
-  .hero-stat { text-align: center; }
+  .hero-stats-card {
+    position: relative; right: auto; bottom: auto;
+    margin: 0 3vw; padding: 14px 16px;
+  }
+  .hero-stat-item { padding: 0 16px; }
   .hero-bottom { padding: 14px 5vw 18px; }
 }
 @media (max-width: 600px) {
-  .hero-stats-card { display: none; }
   .hero-h-line { font-size: clamp(32px, 9vw, 50px); }
   .hero-btns { gap: 10px; }
   .btn-primary, .btn-ghost { padding: 11px 20px; font-size: 10px; }
+  .hero-stats-card { margin: 0 4vw; gap: 0; }
+  .hero-stat-item { padding: 0 12px; }
+  .stat-value { font-size: clamp(18px, 5vw, 24px); }
 }
