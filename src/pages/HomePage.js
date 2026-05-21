@@ -36,13 +36,13 @@ export default function HomePage() {
       <Hero />
 
       {/* 2. New Arrivals — right after hero */}
-      <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop" />
+      <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop?section=newArrivals" />
 
       {/* 3. Categories (both rows) */}
       <Categories />
 
       {/* 4. Best Sellers */}
-      <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop" />
+      <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop?section=bestSellers" />
 
       {/* 5. Reviews */}
       <Reviews />

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, X, Heart } from 'lucide-react';
 import { CartContext } from '../App';
@@ -10,6 +10,7 @@ export default function Navbar() {
   const { wishlistCount }               = useContext(WishlistContext);
   const [searchOpen, setSearchOpen]     = useState(false);
   const [searchVal,  setSearchVal]      = useState('');
+  const searchInputRef                  = useRef(null);
   const [scrolled,   setScrolled]       = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +24,13 @@ export default function Navbar() {
   }, []);
 
   const heroMode = isHome && !scrolled;
+   
+  // Auto-focus search input when overlay opens
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current.focus(), 50);
+    }
+  }, [searchOpen]);
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchVal.trim()) {
@@ -33,16 +41,24 @@ export default function Navbar() {
     if (e.key === 'Escape') { setSearchOpen(false); setSearchVal(''); }
   };
 
+  // Fix: Handle Home click — if already on home page, scroll to top
+  const handleHomeClick = (e) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <>
       <nav className={`navbar ${heroMode ? 'hero-mode' : ''}`}>
         <div className="nav-left">
-          <Link to="/"            className={`nav-link ${location.pathname==='/'?'active':''}`}>HOME</Link>
+          <Link to="/" className={`nav-link ${location.pathname==='/'?'active':''}`} onClick={handleHomeClick}>HOME</Link>
           <Link to="/shop"        className={`nav-link ${location.pathname==='/shop'?'active':''}`}>SHOP</Link>
           <Link to="/collections" className={`nav-link ${location.pathname==='/collections'?'active':''}`}>COLLECTIONS</Link>
         </div>
 
-        <Link to="/" className="nav-logo">Kanyamaa Collections</Link>
+        <Link to="/" className="nav-logo" onClick={handleHomeClick}>Kanyamaa Collections</Link>
 
         <div className="nav-right">
           <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
@@ -68,7 +84,7 @@ export default function Navbar() {
         <div className="search-inner">
           <Search size={15} color="#999" strokeWidth={1.5} />
           <input
-            autoFocus={searchOpen}
+             ref={searchInputRef}
             type="text"
             placeholder="Search jewellery... (press Enter)"
             value={searchVal}

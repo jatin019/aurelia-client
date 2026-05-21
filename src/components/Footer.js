@@ -39,8 +39,8 @@ const DEFAULT_FOOTER = {
   contactAddress: '12, Jewellers Lane, New Delhi - 110001',
   copyrightText: '© 2026 Kanyamma Collections. All rights reserved.',
   shopLinks: [
-    { label: 'New Arrivals', url: '/shop' },
-    { label: 'Best Sellers', url: '/shop' },
+    { label: 'New Arrivals', url: '/shop?section=newArrivals' },
+    { label: 'Best Sellers', url: '/shop?section=bestSellers' },
     { label: 'Bridal Collection', url: '/collections' },
     { label: 'Fine Jewelry', url: '/shop' },
   ],

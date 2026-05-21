@@ -7,7 +7,7 @@ import { CartContext } from '../App';
 import { WishlistContext } from '../App';
 import { Heart, SlidersHorizontal, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import './ShopPage.css';
-
+ 
 const FALLBACK_CATS = [
   { id:'rings',     label:'Rings'     },
   { id:'necklaces', label:'Necklaces' },
@@ -18,7 +18,7 @@ const FALLBACK_CATS = [
   { id:'anklets',   label:'Anklets'   },
   { id:'charms',    label:'Charms'    },
 ];
-
+ 
 const FALLBACK_SUBCATS = {
   rings:     ['Gold','Silver','Diamond','Rose Gold','Platinum','Gold Plated'],
   necklaces: ['Gold Plated','Sterling Silver','Pearl','Diamond','Chain','Kundan'],
@@ -29,7 +29,7 @@ const FALLBACK_SUBCATS = {
   anklets:   ['Gold','Silver','Beaded','Payal'],
   charms:    ['Gold','Silver','Enamel'],
 };
-
+ 
 const PRICE_RANGES = [
   { id:'u50k',   label:'Under ₹50,000',           min:0,      max:50000     },
   { id:'50-1l',  label:'₹50,000 – ₹1,00,000',     min:50000,  max:100000    },
@@ -37,12 +37,14 @@ const PRICE_RANGES = [
   { id:'2.5-5l', label:'₹2,50,000 – ₹5,00,000',   min:250000, max:500000    },
   { id:'5lplus', label:'Above ₹5,00,000',         min:500000, max:Infinity  },
 ];
-
+ 
 export default function ShopPage() {
-  const [searchParams]  = useSearchParams();
+  const [searchParams, setSearchParams]  = useSearchParams();
   const navigate        = useNavigate();
   const initialCat      = searchParams.get('cat') || 'all';
-
+  const searchQuery     = searchParams.get('q') || '';
+  const sectionFilter   = searchParams.get('section') || '';
+ 
   const [products,   setProducts]   = useState(allProducts);
   const [catRow1,    setCatRow1]    = useState([]);
   const [catRow2,    setCatRow2]    = useState([]);
@@ -51,46 +53,55 @@ export default function ShopPage() {
   const { addToCart }               = useContext(CartContext);
   const { toggleWishlist, inWishlist } = useContext(WishlistContext);
   const [addedId,    setAddedId]    = useState(null);
-
+ 
   const [activePillCat, setActivePillCat] = useState(initialCat);
   const [panelOpen,    setPanelOpen]    = useState(false);
   const [expandedCat,  setExpandedCat]  = useState(null);
-
+ 
   const [appliedSort,     setAppliedSort]     = useState('default');
   const [appliedSubCats,  setAppliedSubCats]  = useState([]);
   const [appliedPrice,    setAppliedPrice]    = useState(null);
   const [appliedSaleOnly, setAppliedSaleOnly] = useState(false);
-
+ 
   const [pendingSort,     setPendingSort]     = useState('default');
   const [pendingSubCats,  setPendingSubCats]  = useState([]);
   const [pendingPrice,    setPendingPrice]    = useState(null);
   const [pendingSaleOnly, setPendingSaleOnly] = useState(false);
-
+ 
+  // Local search state for the inline search bar on shop page
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+ 
   useEffect(() => {
     const c = searchParams.get('cat') || 'all';
     setActivePillCat(c);
   }, [searchParams]);
-
+ 
+  // Sync URL search query to local state
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    setLocalSearch(q);
+  }, [searchParams]);
+ 
   useEffect(() => {
     const u1 = onSnapshot(doc(db,'site','categories_row1'), s => { if(s.exists()&&s.data().items) setCatRow1(s.data().items); });
     const u2 = onSnapshot(doc(db,'site','categories_row2'), s => { if(s.exists()&&s.data().items) setCatRow2(s.data().items); });
     return () => { u1(); u2(); };
   }, []);
-
+ 
   useEffect(() => {
     const unsub = onSnapshot(doc(db,'site','sub_categories'), snap => {
       if(snap.exists()&&snap.data().map) setSubCatMap(snap.data().map);
     }, ()=>{});
     return () => unsub();
   }, []);
-
+ 
   useEffect(() => {
     const unsub = onSnapshot(doc(db,'site','sale_banner'), snap => {
       if(snap.exists()) setSaleBanner(snap.data());
     }, ()=>{});
     return () => unsub();
   }, []);
-
+ 
   useEffect(() => {
     const q = query(collection(db,'products'), orderBy('createdAt','desc'));
     const unsub = onSnapshot(q, snap => {
@@ -100,16 +111,16 @@ export default function ShopPage() {
     }, ()=>{});
     return () => unsub();
   }, []);
-
+ 
   const CATS = useMemo(() => {
     const combined = [...catRow1,...catRow2];
     const base = combined.length>0 ? combined.map(c=>({id:c.id,label:c.label})) : FALLBACK_CATS;
     return [{id:'all',label:'All'},...base];
   }, [catRow1,catRow2]);
-
+ 
   const getSubCats = (catId) =>
     (subCatMap[catId]?.length>0 ? subCatMap[catId] : FALLBACK_SUBCATS[catId]) || [];
-
+ 
   const openPanel = () => {
     setPendingSort(appliedSort);
     setPendingSubCats([...appliedSubCats]);
@@ -118,7 +129,7 @@ export default function ShopPage() {
     setExpandedCat(activePillCat !== 'all' ? activePillCat : null);
     setPanelOpen(true);
   };
-
+ 
   const applyFilters = () => {
     setAppliedSort(pendingSort);
     setAppliedSubCats([...pendingSubCats]);
@@ -126,22 +137,40 @@ export default function ShopPage() {
     setAppliedSaleOnly(pendingSaleOnly);
     setPanelOpen(false);
   };
-
+ 
   const clearAll = () => {
     setPendingSort('default');
     setPendingSubCats([]);
     setPendingPrice(null);
     setPendingSaleOnly(false);
   };
-
+ 
   const toggleSubCat = (catId, sub) => {
     const key = `${catId}::${sub}`;
     setPendingSubCats(prev => prev.includes(key) ? prev.filter(k=>k!==key) : [...prev,key]);
   };
-
-  // FIXED FILTER LOGIC
+ 
+  // FIXED FILTER LOGIC — now includes search query filtering
   const displayProducts = useMemo(() => {
     let list = [...products];
+ 
+    // 0. Filter by search query (from URL ?q= param or local search)
+    const activeSearch = localSearch.trim().toLowerCase();
+    if (activeSearch) {
+      list = list.filter(p => {
+        const name = (p.name || '').toLowerCase();
+        const category = (p.category || '').toLowerCase();
+        const subCategory = (p.subCategory || '').toLowerCase();
+        return name.includes(activeSearch) ||
+               category.includes(activeSearch) ||
+               subCategory.includes(activeSearch);
+      });
+    }
+ 
+    // 0b. Filter by section (bestSellers / newArrivals from URL ?section= param)
+    if (sectionFilter) {
+      list = list.filter(p => p.section === sectionFilter);
+    }
     
     // 1. Filter by category pill
     if (activePillCat !== 'all') {
@@ -152,15 +181,12 @@ export default function ShopPage() {
     if (appliedSubCats.length > 0) {
       list = list.filter(p => {
         const productCat = (p.category || '').toLowerCase();
-        // Get sub-category keys that match this product's category
         const relevantKeys = appliedSubCats.filter(k => {
           const [cat] = k.split('::');
           return cat.toLowerCase() === productCat;
         });
         
-        // If no sub-cat filter applies to this product's category, include it
         if (relevantKeys.length === 0) {
-          // Check if ANY sub-cat filter is for a different category - if so, exclude
           const hasOtherCatFilters = appliedSubCats.some(k => {
             const [cat] = k.split('::');
             return cat.toLowerCase() !== productCat;
@@ -168,7 +194,6 @@ export default function ShopPage() {
           return !hasOtherCatFilters;
         }
         
-        // Match this product's sub-category against the filters
         const pSub = (p.subCategory || '').toLowerCase().trim();
         return relevantKeys.some(k => {
           const sub = k.split('::')[1].toLowerCase().trim();
@@ -197,32 +222,91 @@ export default function ShopPage() {
       if (appliedSort === 'name') return (a.name || '').localeCompare(b.name || '');
       return 0;
     });
-  }, [products, activePillCat, appliedSubCats, appliedPrice, appliedSaleOnly, appliedSort]);
-
+  }, [products, activePillCat, appliedSubCats, appliedPrice, appliedSaleOnly, appliedSort, localSearch, sectionFilter]);
+ 
   const handleAdd = (e, product) => {
     e.stopPropagation(); addToCart(product);
     setAddedId(product.id); setTimeout(()=>setAddedId(null),1500);
   };
-
+ 
+  // Clear search
+  const clearSearch = () => {
+    setLocalSearch('');
+    // Remove q param from URL
+    const params = new URLSearchParams(searchParams);
+    params.delete('q');
+    setSearchParams(params);
+  };
+ 
   const extraFilterCount = appliedSubCats.length + (appliedPrice?1:0) + (appliedSaleOnly?1:0) + (appliedSort!=='default'?1:0);
-
+ 
   const showBanner = saleBanner?.active && saleBanner?.text;
-
+  const activeSearch = localSearch.trim().toLowerCase();
+ 
   return (
     <div className="page-wrapper shop-page">
-
+ 
       {showBanner && (
         <div className="shop-sale-banner"
           style={{ background: saleBanner.bgColor||'#7B1C3E', color: saleBanner.textColor||'#fff' }}>
           🏷 {saleBanner.text}
         </div>
       )}
-
+ 
       <div className="shop-header">
-        <h1 className="shop-title">Shop</h1>
-        <p className="shop-sub">Explore our full collection · {displayProducts.length} pieces</p>
+        <h1 className="shop-title">
+          {sectionFilter === 'newArrivals' ? 'New Arrivals' : sectionFilter === 'bestSellers' ? 'Best Sellers' : 'Shop'}
+        </h1>
+        <p className="shop-sub">
+          {activeSearch ? `Showing results for "${localSearch}" · ` : sectionFilter === 'newArrivals' ? 'Fresh additions to our collection · ' : sectionFilter === 'bestSellers' ? 'Our most loved pieces · ' : 'Explore our full collection · '}
+          {displayProducts.length} piece{displayProducts.length !== 1 ? 's' : ''}
+        </p>
       </div>
-
+ 
+      {/* Search results indicator */}
+      {localSearch && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 5vw', background: '#f0ece6',
+          borderBottom: '1px solid #e0ddd8',
+          fontFamily: 'Jost, sans-serif', fontSize: 13,
+        }}>
+          <span style={{ color: '#555' }}>
+            🔍 Searching: <strong>"{localSearch}"</strong>
+          </span>
+          <button onClick={clearSearch} style={{
+            background: 'none', border: '1px solid #ddd', borderRadius: 100,
+            padding: '3px 10px', fontSize: 11, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            color: '#888', fontFamily: 'Jost, sans-serif',
+          }}>
+            <X size={11} /> Clear
+          </button>
+        </div>
+      )}
+ 
+      {/* Section filter indicator */}
+      {sectionFilter && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 5vw', background: sectionFilter === 'bestSellers' ? '#fff8f0' : '#f0fdf4',
+          borderBottom: '1px solid #e0ddd8',
+          fontFamily: 'Jost, sans-serif', fontSize: 13,
+        }}>
+          <span style={{ color: '#555' }}>
+            {sectionFilter === 'bestSellers' ? '⭐' : '✨'} Viewing: <strong>{sectionFilter === 'bestSellers' ? 'Best Sellers' : 'New Arrivals'}</strong>
+          </span>
+          <button onClick={() => navigate('/shop')} style={{
+            background: 'none', border: '1px solid #ddd', borderRadius: 100,
+            padding: '3px 10px', fontSize: 11, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            color: '#888', fontFamily: 'Jost, sans-serif',
+          }}>
+            <X size={11} /> Show All
+          </button>
+        </div>
+      )}
+ 
       <div className="shop-toolbar">
         <div className="shop-filters">
           {CATS.map(c => (
@@ -233,14 +317,14 @@ export default function ShopPage() {
             </button>
           ))}
         </div>
-
+ 
         <button className={`filter-open-btn ${extraFilterCount>0?'has-filters':''}`} onClick={openPanel}>
           <SlidersHorizontal size={14} strokeWidth={1.8}/>
           <span>Filter & Sort</span>
           {extraFilterCount>0 && <span className="filter-count-badge">{extraFilterCount}</span>}
         </button>
       </div>
-
+ 
       {(appliedSubCats.length>0 || appliedPrice || appliedSaleOnly) && (
         <div className="active-chips-bar">
           {appliedSubCats.map(k=>(
@@ -265,9 +349,9 @@ export default function ShopPage() {
           </button>
         </div>
       )}
-
+ 
       {panelOpen && <div className="filter-backdrop" onClick={()=>setPanelOpen(false)}/>}
-
+ 
       <aside className={`filter-panel ${panelOpen?'open':''}`}>
         <div className="fp-header">
           <h3 className="fp-title">Filter & Sort</h3>
@@ -276,9 +360,9 @@ export default function ShopPage() {
             <button className="fp-close" onClick={()=>setPanelOpen(false)}><X size={17}/></button>
           </div>
         </div>
-
+ 
         <div className="fp-body">
-
+ 
           <div className="fp-section">
             <p className="fp-section-title">Sort By</p>
             {[
@@ -294,7 +378,7 @@ export default function ShopPage() {
               </label>
             ))}
           </div>
-
+ 
           <div className="fp-section">
             <p className="fp-section-title">Sub-categories</p>
             <p className="fp-hint">Expand a category to filter</p>
@@ -334,7 +418,7 @@ export default function ShopPage() {
               );
             })}
           </div>
-
+ 
           <div className="fp-section">
             <p className="fp-section-title">Price Range</p>
             {PRICE_RANGES.map(r => (
@@ -345,7 +429,7 @@ export default function ShopPage() {
               </label>
             ))}
           </div>
-
+ 
           <div className="fp-section">
             <p className="fp-section-title">Offers</p>
             <label className={`fp-sale-toggle ${pendingSaleOnly?'checked':''}`}
@@ -357,7 +441,7 @@ export default function ShopPage() {
             </label>
           </div>
         </div>
-
+ 
         <div className="fp-footer">
           <button className="fp-apply-btn" onClick={applyFilters}>
             Apply
@@ -365,11 +449,11 @@ export default function ShopPage() {
           </button>
         </div>
       </aside>
-
+ 
       {displayProducts.length===0 ? (
         <div className="shop-empty">
-          <p>No products match your filters.</p>
-          <button onClick={()=>{setAppliedSubCats([]);setAppliedPrice(null);setAppliedSaleOnly(false);setAppliedSort('default');setActivePillCat('all');}}>
+          <p>{localSearch ? `No results for "${localSearch}"` : 'No products match your filters.'}</p>
+          <button onClick={()=>{setAppliedSubCats([]);setAppliedPrice(null);setAppliedSaleOnly(false);setAppliedSort('default');setActivePillCat('all');clearSearch();}}>
             Clear All Filters
           </button>
         </div>
