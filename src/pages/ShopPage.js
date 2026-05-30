@@ -7,7 +7,7 @@ import { CartContext } from '../App';
 import { WishlistContext } from '../App';
 import { Heart, SlidersHorizontal, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import './ShopPage.css';
- 
+
 const FALLBACK_CATS = [
   { id:'rings',     label:'Rings'     },
   { id:'necklaces', label:'Necklaces' },
@@ -18,7 +18,7 @@ const FALLBACK_CATS = [
   { id:'anklets',   label:'Anklets'   },
   { id:'charms',    label:'Charms'    },
 ];
- 
+
 const FALLBACK_SUBCATS = {
   rings:     ['Gold','Silver','Diamond','Rose Gold','Platinum','Gold Plated'],
   necklaces: ['Gold Plated','Sterling Silver','Pearl','Diamond','Chain','Kundan'],
@@ -29,7 +29,7 @@ const FALLBACK_SUBCATS = {
   anklets:   ['Gold','Silver','Beaded','Payal'],
   charms:    ['Gold','Silver','Enamel'],
 };
- 
+
 const PRICE_RANGES = [
   { id:'u50k',   label:'Under ₹50,000',           min:0,      max:50000     },
   { id:'50-1l',  label:'₹50,000 – ₹1,00,000',     min:50000,  max:100000    },
@@ -37,14 +37,17 @@ const PRICE_RANGES = [
   { id:'2.5-5l', label:'₹2,50,000 – ₹5,00,000',   min:250000, max:500000    },
   { id:'5lplus', label:'Above ₹5,00,000',         min:500000, max:Infinity  },
 ];
- 
+
 export default function ShopPage() {
   const [searchParams, setSearchParams]  = useSearchParams();
   const navigate        = useNavigate();
   const initialCat      = searchParams.get('cat') || 'all';
   const searchQuery     = searchParams.get('q') || '';
   const sectionFilter   = searchParams.get('section') || '';
- 
+  const minPriceParam   = Number(searchParams.get('minPrice')) || 0;
+  const maxPriceParam   = Number(searchParams.get('maxPrice')) || 0;
+  const saleParam       = searchParams.get('sale') === 'true';
+
   const [products,   setProducts]   = useState(allProducts);
   const [catRow1,    setCatRow1]    = useState([]);
   const [catRow2,    setCatRow2]    = useState([]);
@@ -53,55 +56,55 @@ export default function ShopPage() {
   const { addToCart }               = useContext(CartContext);
   const { toggleWishlist, inWishlist } = useContext(WishlistContext);
   const [addedId,    setAddedId]    = useState(null);
- 
+
   const [activePillCat, setActivePillCat] = useState(initialCat);
   const [panelOpen,    setPanelOpen]    = useState(false);
   const [expandedCat,  setExpandedCat]  = useState(null);
- 
+
   const [appliedSort,     setAppliedSort]     = useState('default');
   const [appliedSubCats,  setAppliedSubCats]  = useState([]);
   const [appliedPrice,    setAppliedPrice]    = useState(null);
   const [appliedSaleOnly, setAppliedSaleOnly] = useState(false);
- 
+
   const [pendingSort,     setPendingSort]     = useState('default');
   const [pendingSubCats,  setPendingSubCats]  = useState([]);
   const [pendingPrice,    setPendingPrice]    = useState(null);
   const [pendingSaleOnly, setPendingSaleOnly] = useState(false);
- 
+
   // Local search state for the inline search bar on shop page
   const [localSearch, setLocalSearch] = useState(searchQuery);
- 
+
   useEffect(() => {
     const c = searchParams.get('cat') || 'all';
     setActivePillCat(c);
   }, [searchParams]);
- 
+
   // Sync URL search query to local state
   useEffect(() => {
     const q = searchParams.get('q') || '';
     setLocalSearch(q);
   }, [searchParams]);
- 
+
   useEffect(() => {
     const u1 = onSnapshot(doc(db,'site','categories_row1'), s => { if(s.exists()&&s.data().items) setCatRow1(s.data().items); });
     const u2 = onSnapshot(doc(db,'site','categories_row2'), s => { if(s.exists()&&s.data().items) setCatRow2(s.data().items); });
     return () => { u1(); u2(); };
   }, []);
- 
+
   useEffect(() => {
     const unsub = onSnapshot(doc(db,'site','sub_categories'), snap => {
       if(snap.exists()&&snap.data().map) setSubCatMap(snap.data().map);
     }, ()=>{});
     return () => unsub();
   }, []);
- 
+
   useEffect(() => {
     const unsub = onSnapshot(doc(db,'site','sale_banner'), snap => {
       if(snap.exists()) setSaleBanner(snap.data());
     }, ()=>{});
     return () => unsub();
   }, []);
- 
+
   useEffect(() => {
     const q = query(collection(db,'products'), orderBy('createdAt','desc'));
     const unsub = onSnapshot(q, snap => {
@@ -111,16 +114,16 @@ export default function ShopPage() {
     }, ()=>{});
     return () => unsub();
   }, []);
- 
+
   const CATS = useMemo(() => {
     const combined = [...catRow1,...catRow2];
     const base = combined.length>0 ? combined.map(c=>({id:c.id,label:c.label})) : FALLBACK_CATS;
     return [{id:'all',label:'All'},...base];
   }, [catRow1,catRow2]);
- 
+
   const getSubCats = (catId) =>
     (subCatMap[catId]?.length>0 ? subCatMap[catId] : FALLBACK_SUBCATS[catId]) || [];
- 
+
   const openPanel = () => {
     setPendingSort(appliedSort);
     setPendingSubCats([...appliedSubCats]);
@@ -129,7 +132,7 @@ export default function ShopPage() {
     setExpandedCat(activePillCat !== 'all' ? activePillCat : null);
     setPanelOpen(true);
   };
- 
+
   const applyFilters = () => {
     setAppliedSort(pendingSort);
     setAppliedSubCats([...pendingSubCats]);
@@ -137,39 +140,55 @@ export default function ShopPage() {
     setAppliedSaleOnly(pendingSaleOnly);
     setPanelOpen(false);
   };
- 
+
   const clearAll = () => {
     setPendingSort('default');
     setPendingSubCats([]);
     setPendingPrice(null);
     setPendingSaleOnly(false);
   };
- 
+
   const toggleSubCat = (catId, sub) => {
     const key = `${catId}::${sub}`;
     setPendingSubCats(prev => prev.includes(key) ? prev.filter(k=>k!==key) : [...prev,key]);
   };
- 
-  // FIXED FILTER LOGIC — now includes search query filtering
+
+  // FILTER LOGIC
   const displayProducts = useMemo(() => {
     let list = [...products];
- 
-    // 0. Filter by search query (from URL ?q= param or local search)
-    const activeSearch = localSearch.trim().toLowerCase();
-    if (activeSearch) {
+
+    // 0. Filter by search query
+    const activeSearchVal = localSearch.trim().toLowerCase();
+    if (activeSearchVal) {
       list = list.filter(p => {
         const name = (p.name || '').toLowerCase();
         const category = (p.category || '').toLowerCase();
         const subCategory = (p.subCategory || '').toLowerCase();
-        return name.includes(activeSearch) ||
-               category.includes(activeSearch) ||
-               subCategory.includes(activeSearch);
+        return name.includes(activeSearchVal) ||
+               category.includes(activeSearchVal) ||
+               subCategory.includes(activeSearchVal);
       });
     }
- 
-    // 0b. Filter by section (bestSellers / newArrivals from URL ?section= param)
+
+    // 0b. Filter by section (bestSellers / newArrivals)
     if (sectionFilter) {
       list = list.filter(p => p.section === sectionFilter);
+    }
+
+    // 0c. Filter by URL price params (from Collections page)
+    if (minPriceParam > 0 || maxPriceParam > 0) {
+      list = list.filter(p => {
+        const ep = getEffectivePrice(p);
+        if (minPriceParam > 0 && maxPriceParam > 0) return ep >= minPriceParam && ep <= maxPriceParam;
+        if (minPriceParam > 0) return ep >= minPriceParam;
+        if (maxPriceParam > 0) return ep <= maxPriceParam;
+        return true;
+      });
+    }
+
+    // 0d. Filter by sale=true — show only products with active discount
+    if (saleParam) {
+      list = list.filter(p => getDiscountPercent(p) > 0);
     }
     
     // 1. Filter by category pill
@@ -202,7 +221,7 @@ export default function ShopPage() {
       });
     }
     
-    // 3. Filter by price range
+    // 3. Filter by price range (panel filter)
     if (appliedPrice) {
       list = list.filter(p => {
         const ep = getEffectivePrice(p);
@@ -210,7 +229,7 @@ export default function ShopPage() {
       });
     }
     
-    // 4. Filter by sale only
+    // 4. Filter by sale only (panel filter)
     if (appliedSaleOnly) {
       list = list.filter(p => getDiscountPercent(p) > 0);
     }
@@ -222,47 +241,68 @@ export default function ShopPage() {
       if (appliedSort === 'name') return (a.name || '').localeCompare(b.name || '');
       return 0;
     });
-  }, [products, activePillCat, appliedSubCats, appliedPrice, appliedSaleOnly, appliedSort, localSearch, sectionFilter]);
- 
+  }, [products, activePillCat, appliedSubCats, appliedPrice, appliedSaleOnly, appliedSort, localSearch, sectionFilter, minPriceParam, maxPriceParam, saleParam]);
+
   const handleAdd = (e, product) => {
     e.stopPropagation(); addToCart(product);
     setAddedId(product.id); setTimeout(()=>setAddedId(null),1500);
   };
- 
+
   // Clear search
   const clearSearch = () => {
     setLocalSearch('');
-    // Remove q param from URL
     const params = new URLSearchParams(searchParams);
     params.delete('q');
     setSearchParams(params);
   };
- 
+
   const extraFilterCount = appliedSubCats.length + (appliedPrice?1:0) + (appliedSaleOnly?1:0) + (appliedSort!=='default'?1:0);
- 
+
   const showBanner = saleBanner?.active && saleBanner?.text;
   const activeSearch = localSearch.trim().toLowerCase();
- 
+
+  // Dynamic page title
+  const getPageTitle = () => {
+    if (sectionFilter === 'newArrivals') return 'New Arrivals';
+    if (sectionFilter === 'bestSellers') return 'Best Sellers';
+    if (saleParam) return 'On Sale';
+    if (minPriceParam > 0 && maxPriceParam > 0) return `₹${minPriceParam} – ₹${maxPriceParam}`;
+    if (minPriceParam > 0) return `₹${minPriceParam} & Above`;
+    if (maxPriceParam > 0) return `Under ₹${maxPriceParam}`;
+    return 'Shop';
+  };
+
+  const getPageSub = () => {
+    if (activeSearch) return `Showing results for "${localSearch}" · `;
+    if (sectionFilter === 'newArrivals') return 'Fresh additions to our collection · ';
+    if (sectionFilter === 'bestSellers') return 'Our most loved pieces · ';
+    if (saleParam) return 'Products with active discounts · ';
+    if (minPriceParam || maxPriceParam) return 'Filtered by price range · ';
+    return 'Explore our full collection · ';
+  };
+
+  const hasUrlFilter = sectionFilter || saleParam || minPriceParam > 0 || maxPriceParam > 0;
+
   return (
     <div className="page-wrapper shop-page">
- 
+
       {showBanner && (
         <div className="shop-sale-banner"
-          style={{ background: saleBanner.bgColor||'#7B1C3E', color: saleBanner.textColor||'#fff' }}>
+          style={{ background: saleBanner.bgColor||'#7B1C3E', color: saleBanner.textColor||'#fff', cursor: 'pointer' }}
+          onClick={() => navigate('/shop?sale=true')}>
           🏷 {saleBanner.text}
+          <span style={{ marginLeft: 12, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', borderBottom: '1px solid currentColor' }}>SHOP NOW →</span>
         </div>
       )}
- 
+
       <div className="shop-header">
-        <h1 className="shop-title">
-          {sectionFilter === 'newArrivals' ? 'New Arrivals' : sectionFilter === 'bestSellers' ? 'Best Sellers' : 'Shop'}
-        </h1>
+        <h1 className="shop-title">{getPageTitle()}</h1>
         <p className="shop-sub">
-          {activeSearch ? `Showing results for "${localSearch}" · ` : sectionFilter === 'newArrivals' ? 'Fresh additions to our collection · ' : sectionFilter === 'bestSellers' ? 'Our most loved pieces · ' : 'Explore our full collection · '}
+          {getPageSub()}
           {displayProducts.length} piece{displayProducts.length !== 1 ? 's' : ''}
         </p>
       </div>
- 
+
       {/* Search results indicator */}
       {localSearch && (
         <div style={{
@@ -284,17 +324,21 @@ export default function ShopPage() {
           </button>
         </div>
       )}
- 
-      {/* Section filter indicator */}
-      {sectionFilter && (
+
+      {/* URL filter indicator (section / price / sale) */}
+      {hasUrlFilter && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 5vw', background: sectionFilter === 'bestSellers' ? '#fff8f0' : '#f0fdf4',
+          padding: '10px 5vw',
+          background: saleParam ? '#fff0ee' : sectionFilter === 'bestSellers' ? '#fff8f0' : sectionFilter === 'newArrivals' ? '#f0fdf4' : '#f5f3ee',
           borderBottom: '1px solid #e0ddd8',
           fontFamily: 'Jost, sans-serif', fontSize: 13,
         }}>
           <span style={{ color: '#555' }}>
-            {sectionFilter === 'bestSellers' ? '⭐' : '✨'} Viewing: <strong>{sectionFilter === 'bestSellers' ? 'Best Sellers' : 'New Arrivals'}</strong>
+            {saleParam && '🏷 Showing: On Sale products only'}
+            {sectionFilter === 'bestSellers' && '⭐ Viewing: Best Sellers'}
+            {sectionFilter === 'newArrivals' && '✨ Viewing: New Arrivals'}
+            {!saleParam && !sectionFilter && (minPriceParam || maxPriceParam) && `💎 Price: ${minPriceParam > 0 ? `₹${minPriceParam}` : '₹0'} – ${maxPriceParam > 0 ? `₹${maxPriceParam}` : '∞'}`}
           </span>
           <button onClick={() => navigate('/shop')} style={{
             background: 'none', border: '1px solid #ddd', borderRadius: 100,
@@ -306,7 +350,7 @@ export default function ShopPage() {
           </button>
         </div>
       )}
- 
+
       <div className="shop-toolbar">
         <div className="shop-filters">
           {CATS.map(c => (
@@ -317,14 +361,14 @@ export default function ShopPage() {
             </button>
           ))}
         </div>
- 
+
         <button className={`filter-open-btn ${extraFilterCount>0?'has-filters':''}`} onClick={openPanel}>
           <SlidersHorizontal size={14} strokeWidth={1.8}/>
           <span>Filter & Sort</span>
           {extraFilterCount>0 && <span className="filter-count-badge">{extraFilterCount}</span>}
         </button>
       </div>
- 
+
       {(appliedSubCats.length>0 || appliedPrice || appliedSaleOnly) && (
         <div className="active-chips-bar">
           {appliedSubCats.map(k=>(
@@ -349,9 +393,9 @@ export default function ShopPage() {
           </button>
         </div>
       )}
- 
+
       {panelOpen && <div className="filter-backdrop" onClick={()=>setPanelOpen(false)}/>}
- 
+
       <aside className={`filter-panel ${panelOpen?'open':''}`}>
         <div className="fp-header">
           <h3 className="fp-title">Filter & Sort</h3>
@@ -360,9 +404,8 @@ export default function ShopPage() {
             <button className="fp-close" onClick={()=>setPanelOpen(false)}><X size={17}/></button>
           </div>
         </div>
- 
+
         <div className="fp-body">
- 
           <div className="fp-section">
             <p className="fp-section-title">Sort By</p>
             {[
@@ -378,7 +421,7 @@ export default function ShopPage() {
               </label>
             ))}
           </div>
- 
+
           <div className="fp-section">
             <p className="fp-section-title">Sub-categories</p>
             <p className="fp-hint">Expand a category to filter</p>
@@ -392,9 +435,7 @@ export default function ShopPage() {
                   <button className="fp-cat-accordion"
                     onClick={()=>setExpandedCat(isExpanded?null:c.id)}>
                     <span className="fp-cat-accordion-label">{c.label}</span>
-                    {checkedCount>0 && (
-                      <span className="fp-cat-count">{checkedCount}</span>
-                    )}
+                    {checkedCount>0 && <span className="fp-cat-count">{checkedCount}</span>}
                     {isExpanded ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
                   </button>
                   {isExpanded && (
@@ -418,7 +459,7 @@ export default function ShopPage() {
               );
             })}
           </div>
- 
+
           <div className="fp-section">
             <p className="fp-section-title">Price Range</p>
             {PRICE_RANGES.map(r => (
@@ -429,7 +470,7 @@ export default function ShopPage() {
               </label>
             ))}
           </div>
- 
+
           <div className="fp-section">
             <p className="fp-section-title">Offers</p>
             <label className={`fp-sale-toggle ${pendingSaleOnly?'checked':''}`}
@@ -441,7 +482,7 @@ export default function ShopPage() {
             </label>
           </div>
         </div>
- 
+
         <div className="fp-footer">
           <button className="fp-apply-btn" onClick={applyFilters}>
             Apply
@@ -449,11 +490,11 @@ export default function ShopPage() {
           </button>
         </div>
       </aside>
- 
+
       {displayProducts.length===0 ? (
         <div className="shop-empty">
-          <p>{localSearch ? `No results for "${localSearch}"` : 'No products match your filters.'}</p>
-          <button onClick={()=>{setAppliedSubCats([]);setAppliedPrice(null);setAppliedSaleOnly(false);setAppliedSort('default');setActivePillCat('all');clearSearch();}}>
+          <p>{localSearch ? `No results for "${localSearch}"` : saleParam ? 'No products on sale right now.' : 'No products match your filters.'}</p>
+          <button onClick={()=>{setAppliedSubCats([]);setAppliedPrice(null);setAppliedSaleOnly(false);setAppliedSort('default');setActivePillCat('all');clearSearch();navigate('/shop');}}>
             Clear All Filters
           </button>
         </div>

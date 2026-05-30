@@ -1,32 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 import './CollectionsPage.css';
 
-const collections = [
-  { id:1, title:'The Bridal Edit',      subtitle:'Pieces crafted for your forever moment',              image:'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=800&q=80', tag:'NEW SEASON' },
-  { id:2, title:'Everyday Luxe',        subtitle:'Effortless elegance for every day',                   image:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80', tag:'BESTSELLER' },
-  { id:3, title:'Heritage Collection',  subtitle:'Timeless designs inspired by antique artistry',       image:'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80', tag:'CLASSIC'    },
-  { id:4, title:'Gift Guide',           subtitle:'Curated gifting for every occasion',                  image:'https://images.unsplash.com/photo-1573408301185-9519f94815b9?w=800&q=80', tag:'GIFTS'      },
-  { id:5, title:'Fine Stones',          subtitle:'Ethically sourced gems of extraordinary beauty',      image:'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=800&q=80', tag:'EXCLUSIVE'  },
-  { id:6, title:'The Minimalist',       subtitle:'Clean lines, quiet luxury',                           image:'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=800&q=80', tag:'TRENDING'   },
+const DEFAULT_COLLECTIONS = [
+  { id:'bestSellers', title:'Best Sellers',  subtitle:'Our most loved pieces by customers',     link:'/shop?section=bestSellers', tag:'POPULAR',   icon:'⭐', active:true },
+  { id:'newArrivals', title:'New Arrivals',  subtitle:'Fresh additions to our collection',       link:'/shop?section=newArrivals', tag:'NEW',       icon:'✨', active:true },
+  { id:'under99',     title:'Under ₹99',    subtitle:'Affordable elegance for every budget',    link:'/shop?maxPrice=99',         tag:'BUDGET',    icon:'💎', active:true },
+  { id:'r99to199',    title:'₹99 – ₹199',  subtitle:'Beautiful pieces at great value',         link:'/shop?minPrice=99&maxPrice=199',  tag:'VALUE',     icon:'💍', active:true },
+  { id:'r199to299',   title:'₹199 – ₹299', subtitle:'Premium craftsmanship, mid-range prices', link:'/shop?minPrice=199&maxPrice=299', tag:'MID-RANGE', icon:'👑', active:true },
+  { id:'r299to399',   title:'₹299 – ₹399', subtitle:'Luxury pieces for special occasions',    link:'/shop?minPrice=299&maxPrice=399', tag:'PREMIUM',   icon:'🌟', active:true },
+  { id:'above499',    title:'₹499 & Above', subtitle:'Exclusive high-end fine jewellery',       link:'/shop?minPrice=499',        tag:'LUXURY',    icon:'♛', active:true },
+  { id:'onSale',      title:'On Sale',       subtitle:'Grab the best deals — limited time offers', link:'/shop?sale=true',        tag:'SALE',      icon:'🏷', active:true },
 ];
 
 export default function CollectionsPage() {
   const navigate = useNavigate();
+  const [collections, setCollections] = useState(DEFAULT_COLLECTIONS);
+
+  // Load from Firebase — admin can edit these
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'site', 'collections_page'), snap => {
+      if (snap.exists() && snap.data().items?.length) {
+        setCollections(snap.data().items);
+      }
+    }, () => {});
+    return () => unsub();
+  }, []);
+
+  // Only show active collections
+  const visibleCollections = collections.filter(c => c.active !== false);
+
   return (
     <div className="page-wrapper collections-page">
       <div className="collections-header">
         <h1 className="collections-title">Collections</h1>
-        <p className="collections-sub">Thoughtfully curated stories in jewellery</p>
+        <p className="collections-sub">Shop by category and price range</p>
       </div>
       <div className="collections-grid">
-        {collections.map(col => (
-          <div className="col-card" key={col.id} onClick={() => navigate('/shop')}>
-            <div className="col-card-img">
-              <img src={col.image} alt={col.title} loading="lazy" />
-              <span className="col-tag">{col.tag}</span>
-            </div>
+        {visibleCollections.map(col => (
+          <div className="col-card" key={col.id} onClick={() => navigate(col.link)}>
+            <div className="col-card-icon">{col.icon}</div>
             <div className="col-card-info">
+              <span className="col-tag">{col.tag}</span>
               <h3 className="col-card-title">{col.title}</h3>
               <p className="col-card-sub">{col.subtitle}</p>
               <span className="col-card-link">Explore →</span>

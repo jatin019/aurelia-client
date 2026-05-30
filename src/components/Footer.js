@@ -26,9 +26,9 @@ const getIconForLabel = (label) => {
 };
 
 const DEFAULT_SOCIALS = [
-  { label:'INSTAGRAM',  url:'#' },
-  { label:'FACEBOOK',    url:'#' },
-  { label:'YOUTUBE', url:'#' },
+  { label:'INSTAGRAM',  url:'https://instagram.com' },
+  { label:'FACEBOOK',    url:'https://facebook.com' },
+  { label:'YOUTUBE', url:'https://youtube.com' },
 ];
 
 const DEFAULT_FOOTER = {
@@ -165,9 +165,10 @@ export default function Footer() {
               </a>
               
               {footerData.contactPhone && (
-                <a href={`tel:${footerData.contactPhone}`} className="footer-contact-row">
+                <a href={`https://wa.me/${footerData.contactPhone.replace(/[^0-9]/g, '')}`}
+                   target="_blank" rel="noopener noreferrer" className="footer-contact-row">
                   <Phone size={14} strokeWidth={1.6} />
-                  <span>{footerData.contactPhone}</span>
+                  <span>{footerData.contactPhone} (WhatsApp)</span>
                 </a>
               )}
               
