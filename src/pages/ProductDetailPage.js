@@ -10,7 +10,7 @@ import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
 
 const BADGES = [
-  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹50,000' },
+  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹500' },
   { icon:'↩', label:'Free Returns',      sub:'30-day return policy'     },
   { icon:'♛', label:'Authenticity',      sub:'Certified fine jewellery' },
   { icon:'⚑', label:'Ethically Sourced', sub:'100% responsible gems'    },
@@ -19,7 +19,7 @@ const BADGES = [
 const DEFAULT_CONTENT = {
   details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials. Each piece comes with a certificate of authenticity.`,
   care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes and harsh chemicals.`,
-  shipping: () => `Complimentary express shipping on orders over ₹50,000. Ships within 1–2 business days. Free returns within 30 days.`,
+  shipping: () => `Complimentary express shipping on orders over ₹2000. Ships within 1–2 business days. Free returns within 30 days.`,
 };
 
 export default function ProductDetailPage() {
