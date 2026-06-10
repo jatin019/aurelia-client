@@ -15,7 +15,7 @@ export default function ProductCard({ product }) {
 
   const handleAdd = (e) => {
     e.stopPropagation();
-    addToCart(product);
+    navigate(`/product/${product.id}`);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };

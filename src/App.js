@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { db } from './firebase/config';
@@ -17,6 +18,9 @@ export const CartContext     = React.createContext();
 export const WishlistContext = React.createContext();
 export const SaleContext     = React.createContext();
 
+const cartKey = (item) =>
+  `${item.id}-${item.selectedSize || ''}`; // material removed
+
 const loadLS = (key, fallback) => {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
   catch { return fallback; }
@@ -30,13 +34,11 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [activeSale, setActiveSale] = useState(null);
 
-  // Load sale banner data globally so getEffectivePrice can use it
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'site', 'sale_banner'), snap => {
       if (snap.exists()) {
         const data = snap.data();
         setActiveSale(data);
-        // Set globally so products.js helpers can access
         window.__ACTIVE_SALE__ = data;
       } else {
         window.__ACTIVE_SALE__ = null;
@@ -49,24 +51,28 @@ export default function App() {
 
   const addToCart = (product) => {
     setCart(prev => {
-      const key = `${product.id}-${product.selectedSize || ''}-${product.selectedMaterial || ''}`;
-      const existing = prev.find(i =>
-        `${i.id}-${i.selectedSize || ''}-${i.selectedMaterial || ''}` === key
-      );
+      const key = cartKey(product);
+      const existing = prev.find(i => cartKey(i) === key);
       return existing
-        ? prev.map(i =>
-            `${i.id}-${i.selectedSize || ''}-${i.selectedMaterial || ''}` === key
-              ? { ...i, qty: i.qty + 1 } : i
-          )
+        ? prev.map(i => cartKey(i) === key ? { ...i, qty: i.qty + 1 } : i)
         : [...prev, { ...product, qty: 1 }];
     });
     setCartOpen(true);
   };
-  const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id));
-  const updateQty = (id, qty) => {
-    if (qty < 1) return removeFromCart(id);
-    setCart(prev => prev.map(i => i.id === id ? { ...i, qty } : i));
+
+  // FIX: use composite key for remove
+  const removeFromCart = (item) => {
+    const key = cartKey(item);
+    setCart(prev => prev.filter(i => cartKey(i) !== key));
   };
+
+  // FIX: use composite key for updateQty
+  const updateQty = (item, qty) => {
+    const key = cartKey(item);
+    if (qty < 1) return removeFromCart(item);
+    setCart(prev => prev.map(i => cartKey(i) === key ? { ...i, qty } : i));
+  };
+
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const [wishlist, setWishlist] = useState(() => loadLS('kanyamaa_wishlist', []));

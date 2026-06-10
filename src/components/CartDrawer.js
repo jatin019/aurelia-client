@@ -1,3 +1,4 @@
+// CartDrawer.js
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../App';
@@ -14,8 +15,6 @@ export default function CartDrawer() {
     setCartOpen(false);
     navigate('/checkout');
   };
-
-  const cartKey = (item) => `${item.id}-${item.selectedSize || ''}-${item.selectedMaterial || ''}`;
 
   return (
     <>
@@ -34,27 +33,27 @@ export default function CartDrawer() {
             </div>
           )}
           {cart.map(item => (
-            <div className="cart-item" key={cartKey(item)}>
+            <div className="cart-item" key={`${item.id}-${item.selectedSize || ''}`}>
               <div className="cart-item-img">
                 <img src={item.image} alt={item.name} />
               </div>
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.name}</p>
-                {(item.selectedSize || item.selectedMaterial) && (
+                {item.selectedSize && (
                   <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#999', marginBottom: 4 }}>
-                    {item.selectedMaterial && `${item.selectedMaterial}`}
-                    {item.selectedMaterial && item.selectedSize && ' · '}
-                    {item.selectedSize && `Size: ${item.selectedSize}`}
+                    Size: {item.selectedSize}
                   </p>
                 )}
                 <p className="cart-item-price">{formatINR(getEffectivePrice(item))}</p>
                 <div className="cart-item-qty-row">
-                  <button className="qty-btn" onClick={() => updateQty(item.id, item.qty - 1)}>−</button>
+                  {/* FIX: pass full item object */}
+                  <button className="qty-btn" onClick={() => updateQty(item, item.qty - 1)}>−</button>
                   <span className="qty-val">{item.qty}</span>
-                  <button className="qty-btn" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
+                  <button className="qty-btn" onClick={() => updateQty(item, item.qty + 1)}>+</button>
                 </div>
               </div>
-              <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}>✕</button>
+              {/* FIX: pass full item object */}
+              <button className="cart-item-remove" onClick={() => removeFromCart(item)}>✕</button>
             </div>
           ))}
         </div>

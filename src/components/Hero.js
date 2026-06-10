@@ -103,7 +103,7 @@ export default function Hero() {
         >
           <span className="hsb-icon">🏷</span>
           <span className="hsb-text">{banner.text}</span>
-          <button className="hsb-cta" onClick={() => navigate('/shop')}>SHOP NOW →</button>
+          <button className="hsb-cta" onClick={() => navigate('/shop?sale=true')}>SHOP NOW →</button>
         </div>
       )}
 

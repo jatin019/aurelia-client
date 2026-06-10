@@ -10,7 +10,7 @@ import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
 
 const BADGES = [
-  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹500' },
+  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹50,000' },
   { icon:'↩', label:'Free Returns',      sub:'30-day return policy'     },
   { icon:'♛', label:'Authenticity',      sub:'Certified fine jewellery' },
   { icon:'⚑', label:'Ethically Sourced', sub:'100% responsible gems'    },
@@ -19,7 +19,7 @@ const BADGES = [
 const DEFAULT_CONTENT = {
   details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials. Each piece comes with a certificate of authenticity.`,
   care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes and harsh chemicals.`,
-  shipping: () => `Complimentary express shipping on orders over ₹2000. Ships within 1–2 business days. Free returns within 30 days.`,
+  shipping: () => `Complimentary express shipping on orders over ₹50,000. Ships within 1–2 business days. Free returns within 30 days.`,
 };
 
 export default function ProductDetailPage() {
@@ -33,7 +33,6 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [tabContent, setTabContent] = useState({ details:'', care:'', shipping:'' });
   const [added, setAdded] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
@@ -52,7 +51,6 @@ export default function ProductDetailPage() {
       const sc = getSizeConfig(staticProduct.category);
       const firstAvailable = sc.sizes.find(s => isSizeInStock(staticProduct, s)) || sc.sizes[0];
       setSelectedSize(firstAvailable);
-      setSelectedMaterial(sc.materials[0]);
       return;
     }
     const fetchFB = async () => {
@@ -64,7 +62,6 @@ export default function ProductDetailPage() {
           const sc = getSizeConfig(fbp.category);
           const firstAvailable = sc.sizes.find(s => isSizeInStock(fbp, s)) || sc.sizes[0];
           setSelectedSize(firstAvailable);
-          setSelectedMaterial(sc.materials[0]);
           try {
             const relSnap = await getDocs(query(collection(db,'products'), where('category','==',fbp.category)));
             setRelated(relSnap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.id!==id).slice(0,4));
@@ -91,11 +88,7 @@ export default function ProductDetailPage() {
       alert('This size is currently out of stock.');
       return;
     }
-    const productWithOptions = {
-      ...product,
-      selectedSize,
-      selectedMaterial,
-    };
+    const productWithOptions = { ...product, selectedSize };
     for (let i = 0; i < qty; i++) addToCart(productWithOptions);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -164,14 +157,7 @@ export default function ProductDetailPage() {
           </div>
           <p className="pdp-price-note">or 4 interest-free payments of {formatINR(Math.round(effectivePrice/4))}</p>
 
-          {/* Material/Type - CATEGORY SPECIFIC */}
-          <div className="pdp-option-group">
-            <p className="pdp-option-label">{sizeConfig.materialLabel}: <strong>{selectedMaterial}</strong></p>
-            <div className="pdp-options">
-              {sizeConfig.materials.map(m => <button key={m} className={`pdp-option-btn ${selectedMaterial===m?'active':''}`} onClick={() => setSelectedMaterial(m)}>{m}</button>)}
-            </div>
-          </div>
-
+          {/* SIZE ONLY — material removed */}
           <div className="pdp-option-group">
             <p className="pdp-option-label">
               {sizeConfig.label}: <strong>{selectedSize}</strong>
