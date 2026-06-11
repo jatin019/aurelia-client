@@ -5,46 +5,36 @@ import Hero from '../components/Hero';
 import Categories from '../components/Categories';
 import ProductScroller from '../components/ProductScroller';
 import Reviews from '../components/Reviews';
-import { bestSellers as defaultBS, newArrivals as defaultNA } from '../data/products';
 
 export default function HomePage() {
-  const [bestSellers, setBestSellers] = useState(defaultBS);
-  const [newArrivals,  setNewArrivals]  = useState(defaultNA);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
 
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
-      if (snap.empty) { setBestSellers(defaultBS); setNewArrivals(defaultNA); return; }
+      if (snap.empty) {
+        setBestSellers([]);
+        setNewArrivals([]);
+        return;
+      }
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const firebaseBS = all.filter(p => p.section === 'bestSellers');
-      const firebaseNA = all.filter(p => p.section === 'newArrivals');
-      setBestSellers([
-        ...firebaseBS,
-        ...defaultBS.filter(d => !firebaseBS.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
-      ]);
-      setNewArrivals([
-        ...firebaseNA,
-        ...defaultNA.filter(d => !firebaseNA.some(f => f.name?.toLowerCase() === d.name?.toLowerCase()))
-      ]);
+      setBestSellers(all.filter(p => p.section === 'bestSellers'));
+      setNewArrivals(all.filter(p => p.section === 'newArrivals'));
     }, () => {});
     return () => unsub();
   }, []);
 
   return (
     <div className="page-wrapper home-page">
-      {/* 1. Full-screen hero */}
       <Hero />
-
-      {/* 2. New Arrivals — right after hero */}
-      <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop?section=newArrivals" />
-
-      {/* 3. Categories (both rows) */}
+      {newArrivals.length > 0 && (
+        <ProductScroller title="New Arrivals" products={newArrivals} linkTo="/shop?section=newArrivals" />
+      )}
       <Categories />
-
-      {/* 4. Best Sellers */}
-      <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop?section=bestSellers" />
-
-      {/* 5. Reviews */}
+      {bestSellers.length > 0 && (
+        <ProductScroller title="Best Sellers" products={bestSellers} linkTo="/shop?section=bestSellers" />
+      )}
       <Reviews />
     </div>
   );

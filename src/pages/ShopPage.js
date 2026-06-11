@@ -167,15 +167,17 @@ export default function ShopPage() {
     return () => unsub();
   }, []);
 
-  useEffect(() => {
-    const q = query(collection(db,'products'), orderBy('createdAt','desc'));
-    const unsub = onSnapshot(q, snap => {
-      if(snap.empty) { setProducts(allProducts); return; }
-      const fp = snap.docs.map(d=>({id:d.id,...d.data()}));
-      setProducts([...fp, ...allProducts.filter(d=>!fp.some(f=>f.name?.toLowerCase()===d.name?.toLowerCase()))]);
-    }, ()=>{});
-    return () => unsub();
-  }, []);
+  // In ShopPage.js — replace the products useEffect:
+useEffect(() => {
+  const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+  const unsub = onSnapshot(q, snap => {
+    if (snap.empty) { setProducts([]); return; }
+    const fp = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    setProducts(fp);
+  }, () => {});
+  return () => unsub();
+}, []);
+
 
   const CATS = useMemo(() => {
     const combined = [...catRow1,...catRow2];
@@ -237,18 +239,30 @@ export default function ShopPage() {
     if (activePillCat !== 'all') {
       list = list.filter(p => (p.category || '').toLowerCase() === activePillCat.toLowerCase());
     }
-    if (appliedSubCats.length > 0) {
-      list = list.filter(p => {
-        const productCat = (p.category || '').toLowerCase();
-        const relevantKeys = appliedSubCats.filter(k => { const [cat] = k.split('::'); return cat.toLowerCase() === productCat; });
-        if (relevantKeys.length === 0) {
-          const hasOtherCatFilters = appliedSubCats.some(k => { const [cat] = k.split('::'); return cat.toLowerCase() !== productCat; });
-          return !hasOtherCatFilters;
-        }
-        const pSub = (p.subCategory || '').toLowerCase().trim();
-        return relevantKeys.some(k => { const sub = k.split('::')[1].toLowerCase().trim(); return pSub === sub; });
-      });
-    }
+    // Replace the sub-category filter block (step 2) with this:
+if (appliedSubCats.length > 0) {
+  list = list.filter(p => {
+    const productCat = (p.category || '').toLowerCase();
+    const relevantKeys = appliedSubCats.filter(k => {
+      const [cat] = k.split('::');
+      return cat.toLowerCase() === productCat;
+    });
+    if (relevantKeys.length === 0) return true;
+
+    // Support both subCategories array and legacy subCategory string
+    const pSubCats = p.subCategories?.length > 0
+      ? p.subCategories.map(s => s.toLowerCase().trim())
+      : p.subCategory
+        ? p.subCategory.split(',').map(s => s.toLowerCase().trim())
+        : [];
+
+    return relevantKeys.some(k => {
+      const sub = k.split('::')[1].toLowerCase().trim();
+      return pSubCats.includes(sub);
+    });
+  });
+}
+
     if (appliedPrice) {
       list = list.filter(p => { const ep = getEffectivePrice(p); return ep >= appliedPrice.min && ep <= appliedPrice.max; });
     }

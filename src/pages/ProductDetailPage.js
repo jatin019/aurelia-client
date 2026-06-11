@@ -4,22 +4,23 @@ import { db } from '../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { CartContext } from '../App';
 import { WishlistContext } from '../App';
-import { allProducts, getEffectivePrice, getDiscountPercent, formatINR } from '../data/products';
+import { getEffectivePrice, getDiscountPercent, formatINR } from '../data/products';
 import { getSizeConfig, isSizeInStock } from '../data/sizeConfig';
 import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
 
+// Updated badges — ₹999+ free shipping, 7-day returns
 const BADGES = [
-  { icon:'✦', label:'Free Shipping',     sub:'On orders over ₹50,000' },
-  { icon:'↩', label:'Free Returns',      sub:'30-day return policy'     },
-  { icon:'♛', label:'Authenticity',      sub:'Certified fine jewellery' },
-  { icon:'⚑', label:'Ethically Sourced', sub:'100% responsible gems'    },
+  { icon: '✦', label: 'Free Shipping',     sub: 'On orders over ₹999'      },
+  { icon: '↩', label: 'Easy Returns',      sub: '7-day return policy'       },
+  { icon: '♛', label: 'Authenticity',      sub: 'Certified fine jewellery'  },
+  { icon: '⚑', label: 'Ethically Sourced', sub: '100% responsible gems'     },
 ];
 
 const DEFAULT_CONTENT = {
   details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials. Each piece comes with a certificate of authenticity.`,
   care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes and harsh chemicals.`,
-  shipping: () => `Complimentary express shipping on orders over ₹50,000. Ships within 1–2 business days. Free returns within 30 days.`,
+  shipping: () => `Free shipping on orders over ₹999. Ships within 1–2 business days. Easy returns within 7 days.`,
 };
 
 export default function ProductDetailPage() {
@@ -28,60 +29,73 @@ export default function ProductDetailPage() {
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, inWishlist } = useContext(WishlistContext);
 
-  const [product, setProduct] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [tabContent, setTabContent] = useState({ details:'', care:'', shipping:'' });
-  const [added, setAdded] = useState(false);
+  const [product, setProduct]     = useState(null);
+  const [related, setRelated]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [tabContent, setTabContent] = useState({ details: '', care: '', shipping: '' });
+  const [added, setAdded]         = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
-  const [qty, setQty] = useState(1);
+  const [qty, setQty]             = useState(1);
   const [activeTab, setActiveTab] = useState('details');
   const [activeMediaIdx, setActiveMediaIdx] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
-
-  useEffect(() => { if (product) setWishlisted(inWishlist(product.id)); }, [product, inWishlist]);
+  const [imgZoom, setImgZoom]     = useState(false);
+  const [zoomPos, setZoomPos]     = useState({ x: 50, y: 50 });
 
   useEffect(() => {
-    setLoading(true); setAdded(false); setQty(1); setActiveTab('details'); setActiveMediaIdx(0);
-    const staticProduct = allProducts.find(p => String(p.id) === String(id));
-    if (staticProduct) {
-      setProduct(staticProduct);
-      setRelated(allProducts.filter(p => p.category === staticProduct.category && String(p.id) !== String(id)).slice(0,4));
-      setLoading(false);
-      const sc = getSizeConfig(staticProduct.category);
-      const firstAvailable = sc.sizes.find(s => isSizeInStock(staticProduct, s)) || sc.sizes[0];
-      setSelectedSize(firstAvailable);
-      return;
-    }
+    if (product) setWishlisted(inWishlist(product.id));
+  }, [product, inWishlist]);
+
+  useEffect(() => {
+    setLoading(true); setAdded(false); setQty(1);
+    setActiveTab('details'); setActiveMediaIdx(0);
+
     const fetchFB = async () => {
       try {
-        const snap = await getDoc(doc(db,'products',id));
+        const snap = await getDoc(doc(db, 'products', id));
         if (snap.exists()) {
-          const fbp = { id:snap.id, ...snap.data() };
+          const fbp = { id: snap.id, ...snap.data() };
           setProduct(fbp);
           const sc = getSizeConfig(fbp.category);
           const firstAvailable = sc.sizes.find(s => isSizeInStock(fbp, s)) || sc.sizes[0];
           setSelectedSize(firstAvailable);
           try {
-            const relSnap = await getDocs(query(collection(db,'products'), where('category','==',fbp.category)));
-            setRelated(relSnap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.id!==id).slice(0,4));
+            const relSnap = await getDocs(
+              query(collection(db, 'products'), where('category', '==', fbp.category))
+            );
+            setRelated(
+              relSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                .filter(p => p.id !== id).slice(0, 4)
+            );
           } catch {}
-        } else setProduct(null);
-      } catch { setProduct(null); }
-      finally { setLoading(false); }
+        } else {
+          setProduct(null);
+        }
+      } catch {
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchFB();
   }, [id]);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db,'productDescriptions',String(id)), snap => {
-      if (snap.exists()) { const d=snap.data(); setTabContent({ details:d.details||'', care:d.care||'', shipping:d.shipping||'' }); }
-      else setTabContent({ details:'', care:'', shipping:'' });
-    }, () => setTabContent({ details:'', care:'', shipping:'' }));
+    const unsub = onSnapshot(doc(db, 'productDescriptions', String(id)), snap => {
+      if (snap.exists()) {
+        const d = snap.data();
+        setTabContent({ details: d.details || '', care: d.care || '', shipping: d.shipping || '' });
+      } else {
+        setTabContent({ details: '', care: '', shipping: '' });
+      }
+    }, () => setTabContent({ details: '', care: '', shipping: '' }));
     return () => unsub();
   }, [id]);
 
-  const getTabText = (tab) => tabContent[tab] || (product ? (tab==='details' ? DEFAULT_CONTENT.details(product.name) : DEFAULT_CONTENT[tab]()) : '');
+  const getTabText = (tab) =>
+    tabContent[tab] || (product
+      ? (tab === 'details' ? DEFAULT_CONTENT.details(product.name) : DEFAULT_CONTENT[tab]())
+      : '');
 
   const handleAdd = () => {
     if (!isSizeInStock(product, selectedSize)) {
@@ -99,8 +113,21 @@ export default function ProductDetailPage() {
     setWishlisted(w => !w);
   };
 
+  // Zoom on hover
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  };
+
   if (loading) return <div className="pdp-loading"><div className="pdp-spinner" /></div>;
-  if (!product) return <div className="pdp-not-found"><h2>Product not found</h2><button onClick={() => navigate('/shop')}>← Back to Shop</button></div>;
+  if (!product) return (
+    <div className="pdp-not-found">
+      <h2>Product not found</h2>
+      <button onClick={() => navigate('/shop')}>← Back to Shop</button>
+    </div>
+  );
 
   const images = product.images?.length ? product.images : [product.image].filter(Boolean);
   const hasVideo = Boolean(product.video);
@@ -109,6 +136,13 @@ export default function ProductDetailPage() {
   const isOnSale = discountPct > 0;
   const activeIsVideo = hasVideo && activeMediaIdx === images.length;
   const sizeConfig = getSizeConfig(product.category);
+
+  // All sub-categories (supports both array and legacy string)
+  const subCats = product.subCategories?.length > 0
+    ? product.subCategories
+    : product.subCategory
+      ? product.subCategory.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
 
   return (
     <div className="pdp-wrapper">
@@ -120,32 +154,72 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="pdp-grid">
+        {/* IMAGE SECTION */}
         <div className="pdp-image-section">
-          <div className="pdp-image-main">
+          <div
+            className={`pdp-image-main ${imgZoom ? 'zoomed' : ''}`}
+            onMouseEnter={() => setImgZoom(true)}
+            onMouseLeave={() => setImgZoom(false)}
+            onMouseMove={handleMouseMove}
+          >
             {isOnSale && <div className="pdp-sale-badge">-{discountPct}% OFF</div>}
             <div className="pdp-image-badge">{product.category}</div>
-            {activeIsVideo
-              ? <video src={product.video} controls autoPlay muted loop playsInline style={{width:'100%',height:'100%',objectFit:'cover'}} />
-              : <img src={images[activeMediaIdx] || images[0]} alt={product.name} />
-            }
+            {activeIsVideo ? (
+              <video
+                src={product.video}
+                controls autoPlay muted loop playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : (
+              <img
+                src={images[activeMediaIdx] || images[0]}
+                alt={product.name}
+                style={imgZoom ? {
+                  transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                  transform: 'scale(2)',
+                  transition: 'transform 0.1s ease',
+                } : {
+                  transform: 'scale(1)',
+                  transition: 'transform 0.3s ease',
+                }}
+              />
+            )}
           </div>
           <div className="pdp-thumbs">
             {images.map((src, i) => (
-              <div key={i} className={`pdp-thumb ${activeMediaIdx===i&&!activeIsVideo?'active':''}`} onClick={() => setActiveMediaIdx(i)}>
+              <div
+                key={i}
+                className={`pdp-thumb ${activeMediaIdx === i && !activeIsVideo ? 'active' : ''}`}
+                onClick={() => setActiveMediaIdx(i)}
+              >
                 <img src={src} alt="" />
               </div>
             ))}
             {hasVideo && (
-              <div className={`pdp-thumb pdp-thumb-video ${activeIsVideo?'active':''}`} onClick={() => setActiveMediaIdx(images.length)}>
+              <div
+                className={`pdp-thumb pdp-thumb-video ${activeIsVideo ? 'active' : ''}`}
+                onClick={() => setActiveMediaIdx(images.length)}
+              >
                 <span className="pdp-thumb-play">▶</span>
               </div>
             )}
           </div>
         </div>
 
+        {/* INFO SECTION */}
         <div className="pdp-info">
           <div className="pdp-eyebrow">
-            <span className="pdp-cat">{(product.category||'').toUpperCase()}</span>
+            <span className="pdp-cat">{(product.category || '').toUpperCase()}</span>
+            {subCats.length > 0 && (
+              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {subCats.map(sub => (
+                  <span key={sub} style={{
+                    fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#888',
+                    background: '#f0ece6', padding: '2px 8px', borderRadius: 100,
+                  }}>{sub}</span>
+                ))}
+              </span>
+            )}
             <div className="pdp-stars">★★★★★ <span>(124 reviews)</span></div>
           </div>
 
@@ -153,11 +227,18 @@ export default function ProductDetailPage() {
 
           <div className="pdp-price-row">
             <p className="pdp-price">{formatINR(effectivePrice)}</p>
-            {isOnSale && <><p className="pdp-original-price">{formatINR(product.price)}</p><span className="pdp-sale-tag">-{discountPct}% OFF</span></>}
+            {isOnSale && (
+              <>
+                <p className="pdp-original-price">{formatINR(product.price)}</p>
+                <span className="pdp-sale-tag">-{discountPct}% OFF</span>
+              </>
+            )}
           </div>
-          <p className="pdp-price-note">or 4 interest-free payments of {formatINR(Math.round(effectivePrice/4))}</p>
+          <p className="pdp-price-note">
+            or 4 interest-free payments of {formatINR(Math.round(effectivePrice / 4))}
+          </p>
 
-          {/* SIZE ONLY — material removed */}
+          {/* SIZE SELECTION */}
           <div className="pdp-option-group">
             <p className="pdp-option-label">
               {sizeConfig.label}: <strong>{selectedSize}</strong>
@@ -171,7 +252,7 @@ export default function ProductDetailPage() {
                 return (
                   <button
                     key={s}
-                    className={`pdp-size-btn-dynamic ${selectedSize===s ? 'active' : ''} ${!inStock ? 'out-of-stock' : ''}`}
+                    className={`pdp-size-btn-dynamic ${selectedSize === s ? 'active' : ''} ${!inStock ? 'out-of-stock' : ''}`}
                     onClick={() => setSelectedSize(s)}
                     title={!inStock ? 'Out of stock' : ''}
                   >
@@ -187,47 +268,63 @@ export default function ProductDetailPage() {
             )}
           </div>
 
+          {/* CART ROW */}
           <div className="pdp-cart-row">
             <div className="pdp-qty">
-              <button onClick={() => setQty(q => Math.max(1,q-1))}>−</button>
+              <button onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
               <span>{qty}</span>
-              <button onClick={() => setQty(q => q+1)}>+</button>
+              <button onClick={() => setQty(q => q + 1)}>+</button>
             </div>
             <button
-              className={`pdp-add-btn ${added?'added':''}`}
+              className={`pdp-add-btn ${added ? 'added' : ''}`}
               onClick={handleAdd}
               disabled={!isSizeInStock(product, selectedSize)}
               style={{ opacity: !isSizeInStock(product, selectedSize) ? 0.5 : 1 }}
             >
-              {added ? '✓ Added to Bag' : !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK' : 'ADD TO BAG'}
+              {added ? '✓ Added to Bag'
+                : !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK'
+                : 'ADD TO BAG'}
             </button>
           </div>
 
-          <button className={`pdp-wishlist-btn ${wishlisted?'wishlisted':''}`} onClick={handleWishlist}>
+          <button
+            className={`pdp-wishlist-btn ${wishlisted ? 'wishlisted' : ''}`}
+            onClick={handleWishlist}
+          >
             <Heart size={15} fill={wishlisted ? '#e05c7a' : 'none'} color={wishlisted ? '#e05c7a' : 'currentColor'} />
             {wishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}
           </button>
 
+          {/* TABS */}
           <div className="pdp-tabs">
-            {['details','care','shipping'].map(tab => (
-              <button key={tab} className={`pdp-tab ${activeTab===tab?'active':''}`} onClick={() => setActiveTab(tab)}>
-                {tab.charAt(0).toUpperCase()+tab.slice(1)}
+            {['details', 'care', 'shipping'].map(tab => (
+              <button
+                key={tab}
+                className={`pdp-tab ${activeTab === tab ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
           <div className="pdp-tab-content"><p>{getTabText(activeTab)}</p></div>
 
+          {/* BADGES */}
           <div className="pdp-badges">
             {BADGES.map(b => (
               <div className="pdp-badge" key={b.label}>
                 <span className="pdp-badge-icon">{b.icon}</span>
-                <div><p className="pdp-badge-label">{b.label}</p><p className="pdp-badge-sub">{b.sub}</p></div>
+                <div>
+                  <p className="pdp-badge-label">{b.label}</p>
+                  <p className="pdp-badge-sub">{b.sub}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
+      {/* RELATED PRODUCTS */}
       {related.length > 0 && (
         <div className="pdp-related">
           <div className="pdp-related-header">
@@ -236,17 +333,18 @@ export default function ProductDetailPage() {
           </div>
           <div className="pdp-related-grid">
             {related.map(p => {
-              const ep = getEffectivePrice(p); const dp = getDiscountPercent(p);
+              const ep = getEffectivePrice(p);
+              const dp = getDiscountPercent(p);
               return (
                 <div key={p.id} className="pdp-related-card" onClick={() => navigate(`/product/${p.id}`)}>
                   <div className="pdp-related-img">
-                    {dp>0 && <span className="pdp-related-sale">-{dp}%</span>}
+                    {dp > 0 && <span className="pdp-related-sale">-{dp}%</span>}
                     <img src={p.image} alt={p.name} />
                   </div>
                   <p className="pdp-related-name">{p.name}</p>
                   <div className="pdp-related-price-row">
                     <span className="pdp-related-price">{formatINR(ep)}</span>
-                    {dp>0 && <span className="pdp-related-orig">{formatINR(p.price)}</span>}
+                    {dp > 0 && <span className="pdp-related-orig">{formatINR(p.price)}</span>}
                   </div>
                 </div>
               );
