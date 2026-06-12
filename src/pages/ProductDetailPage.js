@@ -307,7 +307,8 @@ export default function ProductDetailPage() {
               </button>
             ))}
           </div>
-          <div className="pdp-tab-content"><p>{getTabText(activeTab)}</p></div>
+          <div className="pdp-tab-content"><div className="pdp-description">{getTabText(activeTab)}</div>
+</div>
 
           {/* BADGES */}
           <div className="pdp-badges">
