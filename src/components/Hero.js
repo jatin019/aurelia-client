@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { doc, onSnapshot } from 'firebase/firestore';
 import './Hero.css';
@@ -31,7 +31,10 @@ const DEFAULT_HERO_CONTENT = {
 };
 
 export default function Hero() {
-  const navigate = useNavigate();
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const isHome     = location.pathname === '/';   // ✅ only show sale banner on homepage
+
   const [imgIdx,   setImgIdx]   = useState(0);
   const [mounted,  setMounted]  = useState(false);
   const [banner,   setBanner]   = useState(null);
@@ -45,17 +48,17 @@ export default function Hero() {
         const data = snap.data();
         setHeroData(prev => ({
           ...prev,
-          ...(data.images?.length      && { images:       data.images       }),
-          ...(data.eyebrow             && { eyebrow:       data.eyebrow      }),
-          ...(data.headingLine1        && { headingLine1:  data.headingLine1 }),
-          ...(data.headingLine2        && { headingLine2:  data.headingLine2 }),
-          ...(data.headingLine3        && { headingLine3:  data.headingLine3 }),
-          ...(data.italicWord          && { italicWord:    data.italicWord   }),
-          ...(data.subtext             && { subtext:       data.subtext      }),
-          ...(data.btnPrimaryText      && { btnPrimaryText:data.btnPrimaryText }),
-          ...(data.btnGhostText        && { btnGhostText:  data.btnGhostText }),
-          ...(data.sideLabel           && { sideLabel:     data.sideLabel    }),
-          ...(data.stats?.length       && { stats:         data.stats        }),
+          ...(data.images?.length      && { images:        data.images        }),
+          ...(data.eyebrow             && { eyebrow:        data.eyebrow       }),
+          ...(data.headingLine1        && { headingLine1:   data.headingLine1  }),
+          ...(data.headingLine2        && { headingLine2:   data.headingLine2  }),
+          ...(data.headingLine3        && { headingLine3:   data.headingLine3  }),
+          ...(data.italicWord          && { italicWord:     data.italicWord    }),
+          ...(data.subtext             && { subtext:        data.subtext       }),
+          ...(data.btnPrimaryText      && { btnPrimaryText: data.btnPrimaryText }),
+          ...(data.btnGhostText        && { btnGhostText:   data.btnGhostText  }),
+          ...(data.sideLabel           && { sideLabel:      data.sideLabel     }),
+          ...(data.stats?.length       && { stats:          data.stats         }),
         }));
       }
     }, () => {});
@@ -74,7 +77,8 @@ export default function Hero() {
     return () => unsub();
   }, []);
 
-  const showBanner = banner?.active && banner?.text;
+  // ✅ Only show banner on homepage
+  const showBanner = isHome && banner?.active && banner?.text;
 
   const renderLine2 = () => {
     const line = heroData.headingLine2;
@@ -88,11 +92,7 @@ export default function Hero() {
 
   return (
     <>
-      {/*
-        ✅ Sale banner is NOW OUTSIDE <section.hero> — rendered before it
-        in normal document flow, right below MarqueeBanner.
-        No more absolute positioning, no gap, no --navbar-h variable needed.
-      */}
+      {/* Sale banner — homepage only */}
       {showBanner && (
         <div
           className="hero-sale-banner"

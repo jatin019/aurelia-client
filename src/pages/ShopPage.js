@@ -294,7 +294,7 @@ if (appliedSubCats.length > 0) {
   };
 
   const extraFilterCount = appliedSubCats.length + (appliedPrice?1:0) + (appliedSaleOnly?1:0) + (appliedSort!=='default'?1:0);
-  const showBanner = saleBanner?.active && saleBanner?.text;
+  const showBanner = false;
   const activeSearch = localSearch.trim().toLowerCase();
 
   const getPageTitle = () => {
