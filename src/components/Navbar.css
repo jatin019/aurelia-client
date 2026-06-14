@@ -1,75 +1,149 @@
+/* ============================================================
+   NAVBAR
+   On HomePage: position sticky — flows between CountdownBanner
+   and MarqueeBanner, then locks to top on scroll.
+   On other pages: position sticky at very top (no banners above).
+   ============================================================ */
+
 .navbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-  height: var(--navbar-h);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 5vw;
-  background: #F5F3EE;
-  border-bottom: 1px solid #e0ddd8;
-  transition: background 0.4s, border-color 0.4s;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: #2a2424;
+  transition: background 0.35s ease, box-shadow 0.35s ease;
 }
+
 .navbar.hero-mode {
   background: transparent;
-  border-bottom-color: transparent;
+  box-shadow: none;
 }
-.navbar.hero-mode .nav-link      { color: rgba(255,255,255,0.85); }
-.navbar.hero-mode .nav-link::after { background: rgba(255,255,255,0.85); }
-.navbar.hero-mode .nav-logo      { color: #fff; }
-.navbar.hero-mode .icon-btn      { color: rgba(255,255,255,0.85); }
-.navbar.hero-mode .cart-badge    { background: #fff; color: #1a1a1a; }
 
-.nav-left { display: flex; gap: 28px; align-items: center; }
-.nav-link {
-  font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 400;
-  letter-spacing: 0.1em; text-transform: uppercase; color: #1a1a1a;
-  text-decoration: none; padding-bottom: 3px; position: relative; transition: color 0.3s;
+.navbar:not(.hero-mode) {
+  background: #2a2424;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
-.nav-link::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-  height: 1px; background: #1a1a1a;
-  transform: scaleX(0); transform-origin: left; transition: transform 0.3s, background 0.3s;
-}
-.nav-link.active::after, .nav-link:hover::after { transform: scaleX(1); }
 
+/* ── Logo ── */
 .nav-logo {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  font-family: 'Cormorant Garamond', serif; font-size: 21px; font-weight: 500;
-  letter-spacing: 0.18em; text-transform: uppercase; color: #1a1a1a; text-decoration: none; transition: color 0.3s;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  color: #fff;
+  text-transform: uppercase;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.nav-right { display: flex; gap: 10px; align-items: center; }
+/* ── Left links ── */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-link {
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.nav-link:hover,
+.nav-link.active {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ── Right icons ── */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .icon-btn {
-  background: none; border: none; cursor: pointer; color: #1a1a1a;
-  display: flex; align-items: center; justify-content: center;
-  padding: 5px; border-radius: 50%; transition: background 0.2s, color 0.3s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  opacity: 0.85;
+  transition: opacity 0.2s;
 }
-.icon-btn:hover { background: rgba(0,0,0,0.06); }
-.cart-btn, .wishlist-btn { position: relative; }
+.icon-btn:hover { opacity: 1; }
+
 .cart-badge {
-  position: absolute; top: -2px; right: -2px;
-  background: #1a1a1a; color: #fff; font-size: 9px;
-  width: 14px; height: 14px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Jost', sans-serif; font-weight: 500; transition: background 0.3s, color 0.3s;
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  background: #8b1a4a;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
 }
-/* Wishlist badge is rose */
-.wishlist-badge { background: #e05c7a !important; color: #fff !important; }
 
+/* ── Search overlay ── */
 .search-overlay {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
-  background: #F5F3EE; height: var(--navbar-h);
-  display: flex; align-items: center; padding: 0 5vw;
-  border-bottom: 1px solid #e0ddd8;
-  transform: translateY(-100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 950;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+  border-bottom: 1px solid #e5e0da;
 }
-.search-overlay.open { transform: translateY(0); }
-.search-inner { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 600px; margin: 0 auto; }
-.search-inner input { flex: 1; background: none; border: none; outline: none; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 300; color: #1a1a1a; }
-.search-inner input::placeholder { color: #aaa; }
+.search-overlay.open {
+  transform: translateY(0);
+}
 
-@media (max-width: 600px) {
-  .navbar { padding: 0 4vw; }
+.search-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  height: 60px;
+}
+
+.search-inner input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .navbar   { padding: 0 16px; }
+  .nav-logo { font-size: 14px; letter-spacing: 0.12em; }
   .nav-left { gap: 16px; }
   .nav-link { font-size: 10px; }
-  .nav-logo { font-size: 18px; }
-  .nav-right { gap: 6px; }
 }

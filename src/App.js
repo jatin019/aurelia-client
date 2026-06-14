@@ -1,6 +1,6 @@
 // App.js
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { db } from './firebase/config';
 import { doc, onSnapshot } from 'firebase/firestore';
 import Navbar from './components/Navbar';
@@ -18,8 +18,7 @@ export const CartContext     = React.createContext();
 export const WishlistContext = React.createContext();
 export const SaleContext     = React.createContext();
 
-const cartKey = (item) =>
-  `${item.id}-${item.selectedSize || ''}`; // material removed
+const cartKey = (item) => `${item.id}-${item.selectedSize || ''}`;
 
 const loadLS = (key, fallback) => {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -29,9 +28,24 @@ const saveLS = (key, value) => {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 };
 
+// Inner layout — knows current route so it can conditionally show navbar
+function Layout({ children }) {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
+  return (
+    <>
+      {/* Navbar is ONLY rendered here for non-home pages */}
+      {!isHome && <Navbar />}
+
+      {children}
+    </>
+  );
+}
+
 export default function App() {
-  const [cart, setCart]         = useState(() => loadLS('kanyamaa_cart', []));
-  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart]             = useState(() => loadLS('kanyamaa_cart', []));
+  const [cartOpen, setCartOpen]     = useState(false);
   const [activeSale, setActiveSale] = useState(null);
 
   useEffect(() => {
@@ -60,13 +74,11 @@ export default function App() {
     setCartOpen(true);
   };
 
-  // FIX: use composite key for remove
   const removeFromCart = (item) => {
     const key = cartKey(item);
     setCart(prev => prev.filter(i => cartKey(i) !== key));
   };
 
-  // FIX: use composite key for updateQty
   const updateQty = (item, qty) => {
     const key = cartKey(item);
     if (qty < 1) return removeFromCart(item);
@@ -85,7 +97,7 @@ export default function App() {
         : [...prev, product]
     );
   };
-  const inWishlist = (id) => wishlist.some(i => i.id === id);
+  const inWishlist    = (id) => wishlist.some(i => i.id === id);
   const wishlistCount = wishlist.length;
 
   return (
@@ -94,15 +106,16 @@ export default function App() {
         <WishlistContext.Provider value={{ wishlist, toggleWishlist, inWishlist, wishlistCount }}>
           <BrowserRouter>
             <ScrollToTop />
-            <Navbar />
-            <Routes>
-              <Route path="/"            element={<HomePage />} />
-              <Route path="/shop"        element={<ShopPage />} />
-              <Route path="/collections" element={<CollectionsPage />} />
-              <Route path="/product/:id" element={<ProductDetailPage />} />
-              <Route path="/wishlist"    element={<WishlistPage />} />
-              <Route path="/checkout"    element={<CheckoutPage />} />
-            </Routes>
+            <Layout>
+              <Routes>
+                <Route path="/"            element={<HomePage />} />
+                <Route path="/shop"        element={<ShopPage />} />
+                <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/wishlist"    element={<WishlistPage />} />
+                <Route path="/checkout"    element={<CheckoutPage />} />
+              </Routes>
+            </Layout>
             <Footer />
             <CartDrawer />
           </BrowserRouter>

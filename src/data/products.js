@@ -1,11 +1,10 @@
-// data/products.js
-// No hardcoded seed products — all products come from Firebase
+// No seed products here — all products come from Firebase realtime.
 
 export const bestSellers = [];
 export const newArrivals = [];
 export const allProducts = [];
 
-// Helper: Check if product is in active sale
+// Sale helpers
 const isProductInActiveSale = (product, activeSale) => {
   if (!activeSale || !activeSale.active) return false;
   if (activeSale.productIds?.length > 0) {
@@ -45,6 +44,4 @@ export const getDiscountPercent = (product) => {
   return 0;
 };
 
-export const formatINR = (amount) => {
-  return '₹' + Number(amount).toLocaleString('en-IN');
-};
+export const formatINR = (amount) => '₹' + Number(amount).toLocaleString('en-IN');

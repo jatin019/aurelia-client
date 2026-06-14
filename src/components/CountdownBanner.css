@@ -1,0 +1,92 @@
+/* ============================================================
+   COUNTDOWN BANNER
+   Normal flow — no fixed/sticky. Sits above the navbar.
+   ============================================================ */
+
+.countdown-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.countdown-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.countdown-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.countdown-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.countdown-boxes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countdown-box {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 10px;
+  border-radius: 6px;
+  min-width: 48px;
+  text-align: center;
+}
+
+.countdown-num {
+  font-family: 'Jost', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+
+.countdown-unit {
+  font-family: 'Jost', sans-serif;
+  font-size: 9px;
+  opacity: 0.7;
+  text-transform: lowercase;
+}
+
+.countdown-colon {
+  font-size: 20px;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.countdown-close {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: opacity 0.2s;
+}
+.countdown-close:hover { opacity: 1; }
+
+@media (max-width: 600px) {
+  .countdown-banner { padding: 10px 40px 10px 16px; }
+  .countdown-title  { font-size: 16px; }
+  .countdown-box    { min-width: 38px; padding: 4px 6px; }
+  .countdown-num    { font-size: 16px; }
+}

@@ -6,26 +6,14 @@ import { WishlistContext } from '../App';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { cartCount, setCartOpen }      = useContext(CartContext);
-  const { wishlistCount }               = useContext(WishlistContext);
-  const [searchOpen, setSearchOpen]     = useState(false);
-  const [searchVal,  setSearchVal]      = useState('');
-  const searchInputRef                  = useRef(null);
-  const [scrolled,   setScrolled]       = useState(false);
+  const { cartCount, setCartOpen } = useContext(CartContext);
+  const { wishlistCount }          = useContext(WishlistContext);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchVal,  setSearchVal]  = useState('');
+  const searchInputRef              = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const isHome   = location.pathname === '/';
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    setScrolled(window.scrollY > 60);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  const heroMode = isHome && !scrolled;
-   
-  // Auto-focus search input when overlay opens
   useEffect(() => {
     if (searchOpen && searchInputRef.current) {
       setTimeout(() => searchInputRef.current.focus(), 50);
@@ -41,7 +29,6 @@ export default function Navbar() {
     if (e.key === 'Escape') { setSearchOpen(false); setSearchVal(''); }
   };
 
-  // Fix: Handle Home click — if already on home page, scroll to top
   const handleHomeClick = (e) => {
     if (location.pathname === '/') {
       e.preventDefault();
@@ -51,11 +38,12 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`navbar ${heroMode ? 'hero-mode' : ''}`}>
+      {/* No hero-mode class needed — sticky positioning handles scroll behaviour */}
+      <nav className="navbar">
         <div className="nav-left">
-          <Link to="/" className={`nav-link ${location.pathname==='/'?'active':''}`} onClick={handleHomeClick}>HOME</Link>
-          <Link to="/shop"        className={`nav-link ${location.pathname==='/shop'?'active':''}`}>SHOP</Link>
-          <Link to="/collections" className={`nav-link ${location.pathname==='/collections'?'active':''}`}>COLLECTIONS</Link>
+          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={handleHomeClick}>HOME</Link>
+          <Link to="/shop"        className={`nav-link ${location.pathname === '/shop' ? 'active' : ''}`}>SHOP</Link>
+          <Link to="/collections" className={`nav-link ${location.pathname === '/collections' ? 'active' : ''}`}>COLLECTIONS</Link>
         </div>
 
         <Link to="/" className="nav-logo" onClick={handleHomeClick}>Kanyamaa Collections</Link>
@@ -64,15 +52,11 @@ export default function Navbar() {
           <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
             <Search size={16} strokeWidth={1.5} />
           </button>
-
-          {/* Wishlist */}
-          <button className="icon-btn wishlist-btn" onClick={() => navigate('/wishlist')} aria-label="Wishlist">
+          <button className="icon-btn" onClick={() => navigate('/wishlist')} aria-label="Wishlist">
             <Heart size={16} strokeWidth={1.5} />
-            {wishlistCount > 0 && <span className="cart-badge wishlist-badge">{wishlistCount}</span>}
+            {wishlistCount > 0 && <span className="cart-badge">{wishlistCount}</span>}
           </button>
-
-          {/* Cart */}
-          <button className="icon-btn cart-btn" onClick={() => setCartOpen(true)} aria-label="Cart">
+          <button className="icon-btn" onClick={() => setCartOpen(true)} aria-label="Cart">
             <ShoppingBag size={16} strokeWidth={1.5} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </button>
@@ -84,7 +68,7 @@ export default function Navbar() {
         <div className="search-inner">
           <Search size={15} color="#999" strokeWidth={1.5} />
           <input
-             ref={searchInputRef}
+            ref={searchInputRef}
             type="text"
             placeholder="Search jewellery... (press Enter)"
             value={searchVal}

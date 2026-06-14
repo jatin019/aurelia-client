@@ -33,18 +33,19 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
 
-/* ── SALE BANNER ── */
+/* ── SALE BANNER ──
+   No longer absolute-positioned inside hero.
+   It now renders OUTSIDE hero, between Navbar and Hero in HomePage.
+   These styles are kept minimal for the standalone strip.
+── */
 .hero-sale-banner {
-  position: absolute;
-  top: var(--navbar-h);
-  left: 0;
-  right: 0;
+  position: relative;           /* ✅ normal flow — no absolute, no top offset */
   z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 10px 20px;
+  gap: 10px;                    /* tighter gap */
+  padding: 7px 20px;            /* slimmer height */
   font-family: 'Jost', sans-serif;
 }
 .hsb-icon { font-size: 13px; }
@@ -56,12 +57,13 @@
   background: transparent;
   border: 1px solid currentColor;
   color: inherit;
-  padding: 4px 14px;
+  padding: 3px 12px;            /* tighter pill */
   font-family: 'Jost', sans-serif;
   font-size: 9px; font-weight: 600;
   letter-spacing: 0.16em; text-transform: uppercase;
   border-radius: 100px; cursor: pointer;
   opacity: 0.85; transition: opacity 0.2s;
+  white-space: nowrap;
 }
 .hsb-cta:hover { opacity: 1; }
 
@@ -70,10 +72,11 @@
   flex: 1;
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 0;
-  padding: calc(var(--navbar-h) + 40px) 5vw 0;
+  padding: 60px 5vw 0;          /* ✅ fixed padding — no navbar-h var needed */
 }
+/* no extra padding needed since banner is outside hero now */
 .hero--has-banner .hero-body {
-  padding-top: calc(var(--navbar-h) + 40px + 38px);
+  padding-top: 60px;
 }
 
 /* ── SIDE LABEL ── */
@@ -141,38 +144,23 @@
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); color: #fff; transform: translateY(-2px); }
 
-/* ── STATS CARD — horizontal, bottom-right corner ── */
+/* ── STATS CARD ── */
 .hero-stats-card {
   position: absolute;
-  right: 5vw;
-  bottom: 18px;
-  top: auto;
-  transform: none;
-  z-index: 10;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin: 0;
+  right: 5vw; bottom: 18px; top: auto;
+  transform: none; z-index: 10;
+  display: flex; flex-direction: row;
+  align-items: center; justify-content: center;
+  gap: 0; margin: 0;
   background: rgba(255,255,255,0.07);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 16px;
-  padding: 18px 22px;
-  opacity: 0;
-  animation: fadeUp 1s ease 1.2s forwards;
+  border-radius: 16px; padding: 18px 22px;
+  opacity: 0; animation: fadeUp 1s ease 1.2s forwards;
 }
-
-.hero-stat-item {
-  padding: 0 24px;
-  text-align: center;
-}
-.hero-stat-item + .hero-stat-item {
-  border-left: 1px solid rgba(255,255,255,0.12);
-}
-
+.hero-stat-item { padding: 0 24px; text-align: center; }
+.hero-stat-item + .hero-stat-item { border-left: 1px solid rgba(255,255,255,0.12); }
 .stat-value {
   display: block; font-family: 'Cormorant Garamond', serif;
   font-size: clamp(22px, 2.2vw, 30px); font-weight: 500; color: #fff;
@@ -220,13 +208,10 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
-  .hero-body { padding-top: calc(var(--navbar-h) + 28px); flex-wrap: wrap; }
-  .hero--has-banner .hero-body { padding-top: calc(var(--navbar-h) + 28px + 38px); }
+  .hero-body { padding-top: 40px; flex-wrap: wrap; }
+  .hero--has-banner .hero-body { padding-top: 40px; }
   .hero-side-label { display: none; }
-  .hero-stats-card {
-    position: relative; right: auto; bottom: auto;
-    margin: 0 3vw; padding: 14px 16px;
-  }
+  .hero-stats-card { position: relative; right: auto; bottom: auto; margin: 0 3vw; padding: 14px 16px; }
   .hero-stat-item { padding: 0 16px; }
   .hero-bottom { padding: 14px 5vw 18px; }
 }

@@ -1,0 +1,4 @@
+/* HomePage has its own navbar in flow — no padding-top needed */
+.home-page {
+  padding-top: 0;
+}

@@ -8,6 +8,7 @@ import { getEffectivePrice, getDiscountPercent, formatINR } from '../data/produc
 import { getSizeConfig, isSizeInStock } from '../data/sizeConfig';
 import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
+import TrustBadges from '../components/TrustBadges';
 
 // Updated badges — ₹999+ free shipping, 7-day returns
 const BADGES = [
@@ -311,17 +312,8 @@ export default function ProductDetailPage() {
 </div>
 
           {/* BADGES */}
-          <div className="pdp-badges">
-            {BADGES.map(b => (
-              <div className="pdp-badge" key={b.label}>
-                <span className="pdp-badge-icon">{b.icon}</span>
-                <div>
-                  <p className="pdp-badge-label">{b.label}</p>
-                  <p className="pdp-badge-sub">{b.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+            {/* BADGES */}
+          <TrustBadges />
         </div>
       </div>
 
