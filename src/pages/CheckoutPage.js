@@ -35,9 +35,11 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
-
+  const SHIPPING_THRESHOLD = 599;   // Free delivery above ₹599
+  const SHIPPING_COST = 150;        // ₹150 below threshold
   const subtotal = cart.reduce((s, i) => s + getEffectivePrice(i) * i.qty, 0);
-  const shipping = subtotal >= 50000 ? 0 : 200;
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const amountToFreeShip = Math.max(0, SHIPPING_THRESHOLD - subtotal);
   const discount = appliedCoupon ? Math.round((subtotal * appliedCoupon.percent) / 100) : 0;
   const tax = Math.round((subtotal - discount) * 0.05);
   const total = subtotal + shipping + tax - discount;
@@ -346,6 +348,35 @@ export default function CheckoutPage() {
             ))}
           </div>
 
+        {/* Free Shipping Progress */}
+
+{amountToFreeShip > 0 && (
+  <div className="free-ship-nudge">
+    <div className="fsn-bar-bg">
+      <div
+        className="fsn-bar-fill"
+        style={{
+          width: `${Math.min(
+            100,
+            (subtotal / SHIPPING_THRESHOLD) * 100
+          )}%`
+        }}
+      />
+    </div>
+
+    <p className="fsn-text">
+      Add <strong>{formatINR(amountToFreeShip)}</strong> more for{' '}
+      <span className="fsn-free">FREE delivery</span> 🚚
+    </p>
+  </div>
+)}
+
+{subtotal >= SHIPPING_THRESHOLD && (
+  <div className="free-ship-achieved">
+    🎉 You've unlocked <strong>FREE delivery!</strong>
+  </div>
+)}
+
           {!appliedCoupon ? (
             <div className="coupon-section">
               <div className="coupon-row">
@@ -389,8 +420,8 @@ export default function CheckoutPage() {
 
           <div className="checkout-trust">
             <div className="trust-item"><ShieldCheck size={16} color="#1a1a1a" /><span>Secure</span></div>
-            <div className="trust-item"><Truck size={16} color="#1a1a1a" /><span>Free Ship ₹50,000+</span></div>
-            <div className="trust-item"><CheckCircle size={16} color="#1a1a1a" /><span>30-day Return</span></div>
+            <div className="trust-item"><Truck size={16} color="#1a1a1a" /><span>Free Ship ₹599+</span></div>
+            <div className="trust-item"><CheckCircle size={16} color="#1a1a1a" /><span>7-day Return</span></div>
           </div>
         </div>
       </form>

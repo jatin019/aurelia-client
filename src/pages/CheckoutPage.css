@@ -253,6 +253,65 @@
   font-family: monospace; font-size: 13px; color: #333;
 }
 
+/* Free shipping nudge */
+.free-ship-nudge {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fffbf0;
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+}
+
+.fsn-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #f0ece6;
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.fsn-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f9a825, #f57f17);
+  border-radius: 100px;
+  transition: width 0.5s ease;
+}
+
+.fsn-text {
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.fsn-free {
+  color: #2d6a4f;
+  font-weight: 600;
+}
+
+.free-ship-achieved {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #d4f5e2;
+  border: 1px solid #a8d5ba;
+  border-radius: 10px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  color: #2d6a4f;
+  text-align: center;
+}
+
+/* Update trust items at bottom of checkout */
+.trust-item span {
+  font-size: 9px;
+  color: #888;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'Jost', sans-serif;
+}
+
+
 @media (max-width: 900px) {
   .checkout-grid { grid-template-columns: 1fr; }
   .order-summary { position: static; }

@@ -298,23 +298,25 @@ if (appliedSubCats.length > 0) {
   const activeSearch = localSearch.trim().toLowerCase();
 
   const getPageTitle = () => {
-    if (sectionFilter === 'newArrivals') return 'New Arrivals';
-    if (sectionFilter === 'bestSellers') return 'Best Sellers';
-    if (saleParam) return 'On Sale';
-    if (minPriceParam > 0 && maxPriceParam > 0) return `₹${minPriceParam.toLocaleString('en-IN')} – ₹${maxPriceParam.toLocaleString('en-IN')}`;
-    if (minPriceParam > 0) return `₹${minPriceParam.toLocaleString('en-IN')} & Above`;
-    if (maxPriceParam > 0) return `Under ₹${maxPriceParam.toLocaleString('en-IN')}`;
-    return 'Shop';
-  };
-
+  if (sectionFilter === 'newArrivals') return 'New Arrivals';
+  if (sectionFilter === 'bestSellers') return 'Best Sellers';
+  if (sectionFilter === 'combo')       return 'Combo Sets';       // ADD
+  if (saleParam) return 'On Sale';
+  if (minPriceParam > 0 && maxPriceParam > 0)
+    return `₹${minPriceParam.toLocaleString('en-IN')} – ₹${maxPriceParam.toLocaleString('en-IN')}`;
+  if (minPriceParam > 0) return `₹${minPriceParam.toLocaleString('en-IN')} & Above`;
+  if (maxPriceParam > 0) return `Under ₹${maxPriceParam.toLocaleString('en-IN')}`;
+  return 'Shop';
+};
   const getPageSub = () => {
-    if (activeSearch) return `Showing results for "${localSearch}" · `;
-    if (sectionFilter === 'newArrivals') return 'Fresh additions to our collection · ';
-    if (sectionFilter === 'bestSellers') return 'Our most loved pieces · ';
-    if (saleParam) return 'Products with active discounts · ';
-    if (minPriceParam || maxPriceParam) return 'Filtered by price range · ';
-    return 'Explore our full collection · ';
-  };
+  if (activeSearch) return `Showing results for "${localSearch}" · `;
+  if (sectionFilter === 'newArrivals') return 'Fresh additions to our collection · ';
+  if (sectionFilter === 'bestSellers') return 'Our most loved pieces · ';
+  if (sectionFilter === 'combo')       return 'Mix & match sets at special prices · '; // ADD
+  if (saleParam) return 'Products with active discounts · ';
+  if (minPriceParam || maxPriceParam) return 'Filtered by price range · ';
+  return 'Explore our full collection · ';
+};
 
   const hasUrlFilter = sectionFilter || saleParam || minPriceParam > 0 || maxPriceParam > 0;
 
@@ -359,6 +361,7 @@ if (appliedSubCats.length > 0) {
             {saleParam && '🏷 Showing: On Sale products only'}
             {sectionFilter === 'bestSellers' && '⭐ Viewing: Best Sellers'}
             {sectionFilter === 'newArrivals' && '✨ Viewing: New Arrivals'}
+            {sectionFilter === 'combo' && '🎁 Viewing: Combo Sets'}
             {!saleParam && !sectionFilter && (minPriceParam || maxPriceParam) && `💎 Price: ${minPriceParam > 0 ? `₹${minPriceParam.toLocaleString('en-IN')}` : '₹0'} – ${maxPriceParam > 0 ? `₹${maxPriceParam.toLocaleString('en-IN')}` : '∞'}`}
           </span>
           <button onClick={() => navigate('/shop')} style={{ background:'none', border:'1px solid #ddd', borderRadius:100, padding:'3px 10px', fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', gap:4, color:'#888', fontFamily:'Jost, sans-serif' }}>

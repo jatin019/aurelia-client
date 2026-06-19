@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import TrustBadges from '../components/TrustBadges';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
@@ -8,21 +9,14 @@ import { getEffectivePrice, getDiscountPercent, formatINR } from '../data/produc
 import { getSizeConfig, isSizeInStock } from '../data/sizeConfig';
 import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
-import TrustBadges from '../components/TrustBadges';
-
-// Updated badges — ₹999+ free shipping, 7-day returns
-const BADGES = [
-  { icon: '✦', label: 'Free Shipping',     sub: 'On orders over ₹999'      },
-  { icon: '↩', label: 'Easy Returns',      sub: '7-day return policy'       },
-  { icon: '♛', label: 'Authenticity',      sub: 'Certified fine jewellery'  },
-  { icon: '⚑', label: 'Ethically Sourced', sub: '100% responsible gems'     },
-];
 
 const DEFAULT_CONTENT = {
-  details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials. Each piece comes with a certificate of authenticity.`,
-  care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes and harsh chemicals.`,
+  details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials.`,
+  care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes.`,
   shipping: () => `Free shipping on orders over ₹999. Ships within 1–2 business days. Easy returns within 7 days.`,
 };
+
+
 
 export default function ProductDetailPage() {
   const { id }        = useParams();
@@ -30,18 +24,22 @@ export default function ProductDetailPage() {
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, inWishlist } = useContext(WishlistContext);
 
-  const [product, setProduct]     = useState(null);
-  const [related, setRelated]     = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [product, setProduct]   = useState(null);
+  const [related, setRelated]   = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [tabContent, setTabContent] = useState({ details: '', care: '', shipping: '' });
-  const [added, setAdded]         = useState(false);
+  const [added, setAdded]       = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
-  const [qty, setQty]             = useState(1);
+  const [qty, setQty]           = useState(1);
   const [activeTab, setActiveTab] = useState('details');
   const [activeMediaIdx, setActiveMediaIdx] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
-  const [imgZoom, setImgZoom]     = useState(false);
-  const [zoomPos, setZoomPos]     = useState({ x: 50, y: 50 });
+
+  // Variant state
+  const [selectedVariant, setSelectedVariant] = useState(null); // null = default images
+
+  // Per-product custom badges from Firestore
+  
 
   useEffect(() => {
     if (product) setWishlisted(inWishlist(product.id));
@@ -49,17 +47,17 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setLoading(true); setAdded(false); setQty(1);
-    setActiveTab('details'); setActiveMediaIdx(0);
+    setActiveTab('details'); setActiveMediaIdx(0); setSelectedVariant(null);
 
-    const fetchFB = async () => {
+    const fetchProduct = async () => {
       try {
         const snap = await getDoc(doc(db, 'products', id));
         if (snap.exists()) {
           const fbp = { id: snap.id, ...snap.data() };
           setProduct(fbp);
           const sc = getSizeConfig(fbp.category);
-          const firstAvailable = sc.sizes.find(s => isSizeInStock(fbp, s)) || sc.sizes[0];
-          setSelectedSize(firstAvailable);
+          const firstAvail = sc.sizes.find(s => isSizeInStock(fbp, s)) || sc.sizes[0];
+          setSelectedSize(firstAvail || '');
           try {
             const relSnap = await getDocs(
               query(collection(db, 'products'), where('category', '==', fbp.category))
@@ -69,29 +67,25 @@ export default function ProductDetailPage() {
                 .filter(p => p.id !== id).slice(0, 4)
             );
           } catch {}
-        } else {
-          setProduct(null);
-        }
-      } catch {
-        setProduct(null);
-      } finally {
-        setLoading(false);
-      }
+        } else setProduct(null);
+      } catch { setProduct(null); }
+      finally { setLoading(false); }
     };
-    fetchFB();
+    fetchProduct();
   }, [id]);
 
+  // Tab descriptions
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'productDescriptions', String(id)), snap => {
       if (snap.exists()) {
         const d = snap.data();
         setTabContent({ details: d.details || '', care: d.care || '', shipping: d.shipping || '' });
-      } else {
-        setTabContent({ details: '', care: '', shipping: '' });
-      }
+      } else setTabContent({ details: '', care: '', shipping: '' });
     }, () => setTabContent({ details: '', care: '', shipping: '' }));
     return () => unsub();
   }, [id]);
+
+
 
   const getTabText = (tab) =>
     tabContent[tab] || (product
@@ -99,27 +93,12 @@ export default function ProductDetailPage() {
       : '');
 
   const handleAdd = () => {
-    if (!isSizeInStock(product, selectedSize)) {
-      alert('This size is currently out of stock.');
-      return;
+    if (product.hasSize !== false && !isSizeInStock(product, selectedSize)) {
+      alert('This size is currently out of stock.'); return;
     }
-    const productWithOptions = { ...product, selectedSize };
-    for (let i = 0; i < qty; i++) addToCart(productWithOptions);
+    addToCart({ ...product, selectedSize, selectedVariant: selectedVariant?.name || '' });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
-  };
-
-  const handleWishlist = () => {
-    toggleWishlist(product);
-    setWishlisted(w => !w);
-  };
-
-  // Zoom on hover
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPos({ x, y });
   };
 
   if (loading) return <div className="pdp-loading"><div className="pdp-spinner" /></div>;
@@ -130,20 +109,24 @@ export default function ProductDetailPage() {
     </div>
   );
 
-  const images = product.images?.length ? product.images : [product.image].filter(Boolean);
-  const hasVideo = Boolean(product.video);
-  const effectivePrice = getEffectivePrice(product);
-  const discountPct = getDiscountPercent(product);
-  const isOnSale = discountPct > 0;
-  const activeIsVideo = hasVideo && activeMediaIdx === images.length;
-  const sizeConfig = getSizeConfig(product.category);
+  // Images: if a variant is selected, show variant images; else show product images
+  const defaultImages = product.images?.length ? product.images : [product.image].filter(Boolean);
+  const displayImages = selectedVariant?.images?.length ? selectedVariant.images : defaultImages;
 
-  // All sub-categories (supports both array and legacy string)
+  const hasVideo    = Boolean(product.video);
+  const effectivePrice = getEffectivePrice(product);
+  const discountPct    = getDiscountPercent(product);
+  const isOnSale       = discountPct > 0;
+  const activeIsVideo  = hasVideo && activeMediaIdx === displayImages.length;
+  const sizeConfig     = getSizeConfig(product.category);
+
   const subCats = product.subCategories?.length > 0
     ? product.subCategories
     : product.subCategory
       ? product.subCategory.split(',').map(s => s.trim()).filter(Boolean)
       : [];
+
+  const variants = product.variants || [];
 
   return (
     <div className="pdp-wrapper">
@@ -155,64 +138,43 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="pdp-grid">
-        {/* IMAGE SECTION */}
+        {/* ── LEFT: Images ── */}
         <div className="pdp-image-section">
-          <div
-            className={`pdp-image-main ${imgZoom ? 'zoomed' : ''}`}
-            onMouseEnter={() => setImgZoom(true)}
-            onMouseLeave={() => setImgZoom(false)}
-            onMouseMove={handleMouseMove}
-          >
+          <div className="pdp-image-main">
             {isOnSale && <div className="pdp-sale-badge">-{discountPct}% OFF</div>}
             <div className="pdp-image-badge">{product.category}</div>
             {activeIsVideo ? (
-              <video
-                src={product.video}
-                controls autoPlay muted loop playsInline
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
+              <video src={product.video} controls autoPlay muted loop playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             ) : (
-              <img
-                src={images[activeMediaIdx] || images[0]}
-                alt={product.name}
-                style={imgZoom ? {
-                  transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                  transform: 'scale(2)',
-                  transition: 'transform 0.1s ease',
-                } : {
-                  transform: 'scale(1)',
-                  transition: 'transform 0.3s ease',
-                }}
-              />
+              <img src={displayImages[activeMediaIdx] || displayImages[0]} alt={product.name} />
             )}
           </div>
+
+          {/* Thumbnails */}
           <div className="pdp-thumbs">
-            {images.map((src, i) => (
-              <div
-                key={i}
+            {displayImages.map((src, i) => (
+              <div key={i}
                 className={`pdp-thumb ${activeMediaIdx === i && !activeIsVideo ? 'active' : ''}`}
-                onClick={() => setActiveMediaIdx(i)}
-              >
+                onClick={() => setActiveMediaIdx(i)}>
                 <img src={src} alt="" />
               </div>
             ))}
             {hasVideo && (
-              <div
-                className={`pdp-thumb pdp-thumb-video ${activeIsVideo ? 'active' : ''}`}
-                onClick={() => setActiveMediaIdx(images.length)}
-              >
+              <div className={`pdp-thumb pdp-thumb-video ${activeIsVideo ? 'active' : ''}`}
+                onClick={() => setActiveMediaIdx(displayImages.length)}>
                 <span className="pdp-thumb-play">▶</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* INFO SECTION */}
+        {/* ── RIGHT: Info ── */}
         <div className="pdp-info">
           <div className="pdp-eyebrow">
             <span className="pdp-cat">{(product.category || '').toUpperCase()}</span>
             {subCats.length > 0 && (
-              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 {subCats.map(sub => (
                   <span key={sub} style={{
                     fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#888',
@@ -239,37 +201,95 @@ export default function ProductDetailPage() {
             or 4 interest-free payments of {formatINR(Math.round(effectivePrice / 4))}
           </p>
 
-          {/* SIZE SELECTION */}
-          <div className="pdp-option-group">
-            <p className="pdp-option-label">
-              {sizeConfig.label}: <strong>{selectedSize}</strong>
-              {!isSizeInStock(product, selectedSize) && (
-                <span style={{ color: '#e74c3c', fontSize: 11, marginLeft: 8 }}>· Out of stock</span>
-              )}
-            </p>
-            <div className="pdp-options">
-              {sizeConfig.sizes.map(s => {
-                const inStock = isSizeInStock(product, s);
-                return (
-                  <button
-                    key={s}
-                    className={`pdp-size-btn-dynamic ${selectedSize === s ? 'active' : ''} ${!inStock ? 'out-of-stock' : ''}`}
-                    onClick={() => setSelectedSize(s)}
-                    title={!inStock ? 'Out of stock' : ''}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-            {sizeConfig.unit && (
-              <p style={{ fontSize: 10, color: '#aaa', marginTop: 6, fontFamily: 'Jost, sans-serif' }}>
-                Sizes shown in {sizeConfig.unit}
+          {/* ── VARIANTS ── */}
+          {variants.length > 0 && (
+            <div className="pdp-option-group">
+              <p className="pdp-option-label">
+                Variant: <strong>{selectedVariant?.name || 'Default'}</strong>
               </p>
-            )}
-          </div>
+              <div className="pdp-variant-swatches">
+                {/* Default (original product images) */}
+                <button
+                  className={`pdp-variant-swatch ${!selectedVariant ? 'active' : ''}`}
+                  onClick={() => { setSelectedVariant(null); setActiveMediaIdx(0); }}
+                  title="Default"
+                >
+                  {defaultImages[0] ? (
+                    <img src={defaultImages[0]} alt="Default" />
+                  ) : (
+                    <span style={{ fontSize: 10 }}>Default</span>
+                  )}
+                </button>
 
-          {/* CART ROW */}
+                {/* Each variant */}
+                {variants.map((v, i) => (
+                  <button
+                    key={i}
+                    className={`pdp-variant-swatch ${selectedVariant?.name === v.name ? 'active' : ''}`}
+                    onClick={() => { setSelectedVariant(v); setActiveMediaIdx(0); }}
+                    title={v.name}
+                    style={v.color ? { outline: `2px solid ${v.color}` } : {}}
+                  >
+                    {v.images?.[0] ? (
+                      <img src={v.images[0]} alt={v.name} />
+                    ) : v.color ? (
+                      <span className="pdp-variant-color-dot" style={{ background: v.color }} />
+                    ) : (
+                      <span style={{ fontSize: 9, padding: '2px 4px' }}>{v.name}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {selectedVariant && (
+                <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 11, color: '#888', marginTop: 6 }}>
+                  Viewing: <strong style={{ color: '#1a1a1a' }}>{selectedVariant.name}</strong>
+                  {' '}— <button
+                    onClick={() => { setSelectedVariant(null); setActiveMediaIdx(0); }}
+                    style={{ background: 'none', border: 'none', color: '#e05c7a', cursor: 'pointer', fontFamily: 'Jost, sans-serif', fontSize: 11, padding: 0 }}>
+                    Reset
+                  </button>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── SIZES ── */}
+          {product.hasSize !== false ? (
+            <div className="pdp-option-group">
+              <p className="pdp-option-label">
+                {sizeConfig.label}: <strong>{selectedSize}</strong>
+                {!isSizeInStock(product, selectedSize) && (
+                  <span style={{ color: '#e74c3c', fontSize: 11, marginLeft: 8 }}>· Out of stock</span>
+                )}
+              </p>
+              <div className="pdp-options">
+                {[...sizeConfig.sizes, ...(product.customSizes || [])].map(s => {
+                  const inStock = isSizeInStock(product, s);
+                  return (
+                    <button key={s}
+                      className={`pdp-size-btn-dynamic ${selectedSize === s ? 'active' : ''} ${!inStock ? 'out-of-stock' : ''}`}
+                      onClick={() => setSelectedSize(s)}
+                      title={!inStock ? 'Out of stock' : ''}>
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+              {sizeConfig.unit && (
+                <p style={{ fontSize: 10, color: '#aaa', marginTop: 6, fontFamily: 'Jost, sans-serif' }}>
+                  Sizes shown in {sizeConfig.unit}
+                </p>
+              )}
+            </div>
+          ) : (
+            product.sizeNote && (
+              <div className="pdp-option-group">
+                <p className="pdp-option-label">{product.sizeNote}</p>
+              </div>
+            )
+          )}
+
+          {/* ── ADD TO CART ── */}
           <div className="pdp-cart-row">
             <div className="pdp-qty">
               <button onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
@@ -279,45 +299,43 @@ export default function ProductDetailPage() {
             <button
               className={`pdp-add-btn ${added ? 'added' : ''}`}
               onClick={handleAdd}
-              disabled={!isSizeInStock(product, selectedSize)}
-              style={{ opacity: !isSizeInStock(product, selectedSize) ? 0.5 : 1 }}
-            >
+              disabled={product.hasSize !== false && !isSizeInStock(product, selectedSize)}
+              style={{ opacity: product.hasSize !== false && !isSizeInStock(product, selectedSize) ? 0.5 : 1 }}>
               {added ? '✓ Added to Bag'
-                : !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK'
+                : product.hasSize !== false && !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK'
                 : 'ADD TO BAG'}
             </button>
           </div>
 
-          <button
-            className={`pdp-wishlist-btn ${wishlisted ? 'wishlisted' : ''}`}
-            onClick={handleWishlist}
-          >
+          <button className={`pdp-wishlist-btn ${wishlisted ? 'wishlisted' : ''}`}
+            onClick={() => { toggleWishlist(product); setWishlisted(w => !w); }}>
             <Heart size={15} fill={wishlisted ? '#e05c7a' : 'none'} color={wishlisted ? '#e05c7a' : 'currentColor'} />
             {wishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}
           </button>
 
-          {/* TABS */}
+          {/* ── TABS ── */}
           <div className="pdp-tabs">
             {['details', 'care', 'shipping'].map(tab => (
-              <button
-                key={tab}
+              <button key={tab}
                 className={`pdp-tab ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
+                onClick={() => setActiveTab(tab)}>
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
-          <div className="pdp-tab-content"><div className="pdp-description">{getTabText(activeTab)}</div>
-</div>
+          <div className="pdp-tab-content"><p>{getTabText(activeTab)}</p></div>
 
           {/* BADGES */}
             {/* BADGES */}
-          <TrustBadges />
+          <TrustBadges productId={product.id} />
+
         </div>
       </div>
+        
 
-      {/* RELATED PRODUCTS */}
+      
+
+      {/* ── RELATED ── */}
       {related.length > 0 && (
         <div className="pdp-related">
           <div className="pdp-related-header">
