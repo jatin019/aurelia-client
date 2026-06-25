@@ -56,7 +56,33 @@ export const getSizeConfig = (category) => {
   return SIZE_CONFIG[category?.toLowerCase()] || SIZE_CONFIG.default;
 };
 
+export const getStockForSelection = (product, size = '') => {
+  if (!product) return Infinity;
+
+  if (product.hasSize !== false && product.sizeStock && size) {
+    const sizeStock = product.sizeStock[size];
+
+    if (sizeStock === false) return 0;
+    if (typeof sizeStock === 'number') return Math.max(0, sizeStock);
+    if (typeof sizeStock === 'string' && sizeStock.trim() !== '' && !Number.isNaN(Number(sizeStock))) {
+      return Math.max(0, Number(sizeStock));
+    }
+  }
+
+  if (product.quantity !== undefined && product.quantity !== '' && product.quantity !== null) {
+    return Math.max(0, Number(product.quantity) || 0);
+  }
+
+  return Infinity;
+};
+
 export const isSizeInStock = (product, size) => {
-  if (!product.sizeStock) return true;
-  return product.sizeStock[size] !== false;
+  return getStockForSelection(product, size) > 0;
+};
+
+export const getStockMessage = (stock) => {
+  if (stock === Infinity) return '';
+  if (stock <= 0) return 'Out of stock';
+  if (stock <= 5) return `Hurry up, only ${stock} left in stock`;
+  return `${stock} left in stock`;
 };

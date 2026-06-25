@@ -1,8 +1,9 @@
-// CartDrawer.js
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../App';
+
 import { getEffectivePrice, formatINR } from '../data/products';
+import { getStockForSelection, getStockMessage } from '../data/sizeConfig';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
@@ -32,30 +33,40 @@ export default function CartDrawer() {
               <span>Add some beautiful pieces ✨</span>
             </div>
           )}
-          {cart.map(item => (
-            <div className="cart-item" key={`${item.id}-${item.selectedSize || ''}`}>
-              <div className="cart-item-img">
-                <img src={item.image} alt={item.name} />
-              </div>
-              <div className="cart-item-info">
-                <p className="cart-item-name">{item.name}</p>
-                {item.selectedSize && (
-                  <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#999', marginBottom: 4 }}>
-                    Size: {item.selectedSize}
-                  </p>
-                )}
-                <p className="cart-item-price">{formatINR(getEffectivePrice(item))}</p>
-                <div className="cart-item-qty-row">
-                  {/* FIX: pass full item object */}
-                  <button className="qty-btn" onClick={() => updateQty(item, item.qty - 1)}>−</button>
-                  <span className="qty-val">{item.qty}</span>
-                  <button className="qty-btn" onClick={() => updateQty(item, item.qty + 1)}>+</button>
+          {cart.map(item => {
+            const stock = getStockForSelection(item, item.selectedSize);
+            const stockMessage = getStockMessage(stock);
+
+            return (
+              <div className="cart-item" key={`${item.id}-${item.selectedSize || ''}`}>
+                <div className="cart-item-img">
+                  <img src={item.image} alt={item.name} />
                 </div>
+                <div className="cart-item-info">
+                  <p className="cart-item-name">{item.name}</p>
+                  {item.selectedSize && (
+                    <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 10, color: '#999', marginBottom: 4 }}>
+                      Size: {item.selectedSize}
+                    </p>
+                  )}
+                  <p className="cart-item-price">{formatINR(getEffectivePrice(item))}</p>
+                  {stockMessage && (
+                    <p style={{ fontFamily: 'Jost, sans-serif', fontSize: 10, color: stock <= 5 ? '#c0392b' : '#2d6a4f', marginBottom: 5 }}>
+                      {stockMessage}
+                    </p>
+                  )}
+                  <div className="cart-item-qty-row">
+                    {/* FIX: pass full item object */}
+                    <button className="qty-btn" onClick={() => updateQty(item, item.qty - 1)}>−</button>
+                    <span className="qty-val">{item.qty}</span>
+                    <button className="qty-btn" disabled={item.qty >= stock} onClick={() => updateQty(item, item.qty + 1)}>+</button>
+                  </div>
+                </div>
+                {/* FIX: pass full item object */}
+                <button className="cart-item-remove" onClick={() => removeFromCart(item)}>✕</button>
               </div>
-              {/* FIX: pass full item object */}
-              <button className="cart-item-remove" onClick={() => removeFromCart(item)}>✕</button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {cart.length > 0 && (

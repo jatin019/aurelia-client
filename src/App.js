@@ -13,6 +13,7 @@ import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
+import { getStockForSelection } from './data/sizeConfig';
 
 export const CartContext     = React.createContext();
 export const WishlistContext = React.createContext();
@@ -63,16 +64,31 @@ export default function App() {
 
   useEffect(() => saveLS('kanyamaa_cart', cart), [cart]);
 
-  const addToCart = (product) => {
-    setCart(prev => {
-      const key = cartKey(product);
-      const existing = prev.find(i => cartKey(i) === key);
-      return existing
-        ? prev.map(i => cartKey(i) === key ? { ...i, qty: i.qty + 1 } : i)
-        : [...prev, { ...product, qty: 1 }];
-    });
-    setCartOpen(true);
-  };
+  const addToCart = (product, qtyToAdd = 1) => {
+      const stock = getStockForSelection(product, product.selectedSize);
+      if (stock <= 0) {
+      alert('This item is out of stock.');
+      return;
+  }
+
+  setCart(prev => {
+    const key = cartKey(product);
+    const existing = prev.find(i => cartKey(i) === key);
+    const existingQty = existing?.qty || 0;
+    const nextQty = Math.min(existingQty + qtyToAdd, stock);
+
+    if (existing && existingQty >= stock) {
+      alert(`Only ${stock} item${stock === 1 ? '' : 's'} available in stock.`);
+      return prev;
+    }
+
+    return existing
+      ? prev.map(i => cartKey(i) === key ? { ...i, ...product, qty: nextQty } : i)
+      : [...prev, { ...product, qty: Math.min(qtyToAdd, stock) }];
+  });
+
+  setCartOpen(true);
+};
 
   const removeFromCart = (item) => {
     const key = cartKey(item);
@@ -80,10 +96,17 @@ export default function App() {
   };
 
   const updateQty = (item, qty) => {
-    const key = cartKey(item);
-    if (qty < 1) return removeFromCart(item);
-    setCart(prev => prev.map(i => cartKey(i) === key ? { ...i, qty } : i));
-  };
+      const key = cartKey(item);
+      if (qty < 1) return removeFromCart(item);
+ 
+      const stock = getStockForSelection(item, item.selectedSize);
+       if (qty > stock) {
+           alert(`Only ${stock} item${stock === 1 ? '' : 's'} available in stock.`);
+           qty = stock;
+  }
+
+      setCart(prev => prev.map(i => cartKey(i) === key ? { ...i, qty } : i));
+};
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 

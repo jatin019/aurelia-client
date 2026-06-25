@@ -5,8 +5,8 @@ import { db } from '../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { CartContext } from '../App';
 import { WishlistContext } from '../App';
+import { getSizeConfig, isSizeInStock, getStockForSelection, getStockMessage } from '../data/sizeConfig';
 import { getEffectivePrice, getDiscountPercent, formatINR } from '../data/products';
-import { getSizeConfig, isSizeInStock } from '../data/sizeConfig';
 import { Heart } from 'lucide-react';
 import './ProductDetailPage.css';
 
@@ -92,15 +92,6 @@ export default function ProductDetailPage() {
       ? (tab === 'details' ? DEFAULT_CONTENT.details(product.name) : DEFAULT_CONTENT[tab]())
       : '');
 
-  const handleAdd = () => {
-    if (product.hasSize !== false && !isSizeInStock(product, selectedSize)) {
-      alert('This size is currently out of stock.'); return;
-    }
-    addToCart({ ...product, selectedSize, selectedVariant: selectedVariant?.name || '' });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
-  };
-
   if (loading) return <div className="pdp-loading"><div className="pdp-spinner" /></div>;
   if (!product) return (
     <div className="pdp-not-found">
@@ -119,6 +110,36 @@ export default function ProductDetailPage() {
   const isOnSale       = discountPct > 0;
   const activeIsVideo  = hasVideo && activeMediaIdx === displayImages.length;
   const sizeConfig     = getSizeConfig(product.category);
+  const selectedStock  = getStockForSelection(product, selectedSize);
+  const stockMessage   = getStockMessage(selectedStock);
+
+  const handleAdd = () => {
+    const stock = getStockForSelection(product, selectedSize);
+
+    if (stock <= 0) {
+      alert('This item is currently out of stock.');
+      return;
+    }
+
+    if (qty > stock) {
+      alert(`Only ${stock} item${stock === 1 ? '' : 's'} available in stock.`);
+      setQty(stock);
+      return;
+    }
+
+    addToCart(
+      {
+        ...product,
+        selectedSize,
+        selectedVariant: selectedVariant?.name || '',
+        stock,
+      },
+      qty
+    );
+
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   const subCats = product.subCategories?.length > 0
     ? product.subCategories
@@ -200,6 +221,12 @@ export default function ProductDetailPage() {
           <p className="pdp-price-note">
             or 4 interest-free payments of {formatINR(Math.round(effectivePrice / 4))}
           </p>
+
+          {stockMessage && (
+            <p className={`pdp-stock-left ${selectedStock <= 5 ? 'low' : ''}`}>
+              {stockMessage}
+            </p>
+          )}
 
           {/* ── VARIANTS ── */}
           {variants.length > 0 && (
@@ -294,15 +321,15 @@ export default function ProductDetailPage() {
             <div className="pdp-qty">
               <button onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
               <span>{qty}</span>
-              <button onClick={() => setQty(q => q + 1)}>+</button>
+              <button onClick={() => setQty(q => Math.min(selectedStock, q + 1))}>+</button>
             </div>
             <button
               className={`pdp-add-btn ${added ? 'added' : ''}`}
               onClick={handleAdd}
-              disabled={product.hasSize !== false && !isSizeInStock(product, selectedSize)}
-              style={{ opacity: product.hasSize !== false && !isSizeInStock(product, selectedSize) ? 0.5 : 1 }}>
+              disabled={selectedStock <= 0}
+              style={{ opacity: selectedStock <= 0 ? 0.5 : 1 }}>
               {added ? '✓ Added to Bag'
-                : product.hasSize !== false && !isSizeInStock(product, selectedSize) ? 'OUT OF STOCK'
+                : selectedStock <= 0 ? 'OUT OF STOCK'
                 : 'ADD TO BAG'}
             </button>
           </div>

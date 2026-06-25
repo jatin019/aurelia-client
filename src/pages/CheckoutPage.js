@@ -2,7 +2,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { CartContext } from '../App';
 import { getEffectivePrice, formatINR } from '../data/products';
 import { CheckCircle, Lock, ShieldCheck, Truck, ArrowLeft, AlertCircle } from 'lucide-react';
@@ -35,16 +35,35 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+  const [availableCoupons, setAvailableCoupons] = useState([]);
   const SHIPPING_THRESHOLD = 599;   // Free delivery above ₹599
   const SHIPPING_COST = 150;        // ₹150 below threshold
   const subtotal = cart.reduce((s, i) => s + getEffectivePrice(i) * i.qty, 0);
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const amountToFreeShip = Math.max(0, SHIPPING_THRESHOLD - subtotal);
   const discount = appliedCoupon ? Math.round((subtotal * appliedCoupon.percent) / 100) : 0;
-  const tax = Math.round((subtotal - discount) * 0.05);
+  const tax = Math.round((subtotal - discount) * 0.03);
   const total = subtotal + shipping + tax - discount;
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'coupons'), snap => {
+      const list = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(c => c.active !== false)
+        .filter(c => {
+          if (!c.expiresAt) return true;
+          const expiry = c.expiresAt.toDate ? c.expiresAt.toDate() : new Date(c.expiresAt);
+          return new Date() <= expiry;
+        })
+        .sort((a, b) => (Number(a.minOrder) || 0) - (Number(b.minOrder) || 0));
+
+      setAvailableCoupons(list);
+    }, () => {});
+
+    return () => unsub();
+  }, []);
 
   const validateField = (name, value) => {
     switch (name) {
@@ -109,29 +128,69 @@ export default function CheckoutPage() {
     return isValid;
   };
 
-  const handleApplyCoupon = async () => {
-    const code = coupon.trim().toUpperCase();
-    if (!code) { setCouponError('Please enter a coupon code'); return; }
-    setCouponLoading(true); setCouponError('');
+  const handleApplyCoupon = async (codeOverride = '') => {
+    const code = (codeOverride || coupon).trim().toUpperCase();
+    if (!code) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+
     try {
       const couponSnap = await getDoc(doc(db, 'coupons', code));
-      if (!couponSnap.exists()) { setCouponError('Invalid coupon code'); setCouponLoading(false); return; }
-      const couponData = couponSnap.data();
-      if (couponData.active === false) { setCouponError('This coupon has expired'); setCouponLoading(false); return; }
-      if (couponData.minOrder && subtotal < couponData.minOrder) {
-        setCouponError(`Minimum order of ${formatINR(couponData.minOrder)} required`);
-        setCouponLoading(false); return;
+
+      if (!couponSnap.exists()) {
+        setCouponError('Invalid coupon code');
+        setCouponLoading(false);
+        return;
       }
+
+      const couponData = couponSnap.data();
+
+      if (couponData.active === false) {
+        setCouponError('This coupon is not active');
+        setCouponLoading(false);
+        return;
+      }
+
+      if (couponData.minOrder && subtotal < Number(couponData.minOrder)) {
+        setCouponError(`Minimum order of ${formatINR(couponData.minOrder)} required`);
+        setCouponLoading(false);
+        return;
+      }
+
+      if (couponData.maxUses && couponData.uses >= couponData.maxUses) {
+        setCouponError('This coupon usage limit is over');
+        setCouponLoading(false);
+        return;
+      }
+
       if (couponData.expiresAt) {
         const expiry = couponData.expiresAt.toDate ? couponData.expiresAt.toDate() : new Date(couponData.expiresAt);
-        if (new Date() > expiry) { setCouponError('This coupon has expired'); setCouponLoading(false); return; }
+        if (new Date() > expiry) {
+          setCouponError('This coupon has expired');
+          setCouponLoading(false);
+          return;
+        }
       }
+
+      const percent = Number(couponData.discountPercent || couponData.percent || 10);
+
       setAppliedCoupon({
-        code, percent: couponData.discountPercent || couponData.percent || 10,
-        label: couponData.label || `${couponData.discountPercent || 10}% off`,
+        code,
+        percent,
+        label: couponData.label || `${percent}% off`,
+        minOrder: Number(couponData.minOrder) || 0,
       });
+
+      setCoupon(code);
       setCouponError('');
-    } catch { setCouponError('Could not verify coupon. Try again.'); }
+    } catch {
+      setCouponError('Could not verify coupon. Try again.');
+    }
+
     setCouponLoading(false);
   };
 
@@ -383,11 +442,41 @@ export default function CheckoutPage() {
                 <input placeholder="Promo code" value={coupon}
                   onChange={e => { setCoupon(e.target.value); setCouponError(''); }}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())} />
-                <button type="button" onClick={handleApplyCoupon} disabled={couponLoading}>
+                <button type="button" onClick={() => handleApplyCoupon()} disabled={couponLoading}>
                   {couponLoading ? '...' : 'Apply'}
                 </button>
               </div>
               {couponError && <p className="coupon-error"><AlertCircle size={12} /> {couponError}</p>}
+
+              {availableCoupons.length > 0 && (
+                <div className="available-coupons">
+                  <p className="available-coupons-title">Available coupons</p>
+
+                  {availableCoupons.map(c => {
+                    const code = c.code || c.id;
+                    const minOrder = Number(c.minOrder) || 0;
+                    const canUse = subtotal >= minOrder;
+
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`available-coupon ${canUse ? '' : 'locked'}`}
+                        onClick={() => canUse && handleApplyCoupon(code)}
+                        disabled={!canUse || couponLoading}
+                      >
+                        <span>
+                          <strong>{code}</strong>
+                          <small>{c.label || `${c.discountPercent}% off`}</small>
+                        </span>
+                        <em>
+                          {canUse ? 'Apply' : `Shop ${formatINR(minOrder - subtotal)} more`}
+                        </em>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             <div className="coupon-applied">
@@ -410,7 +499,7 @@ export default function CheckoutPage() {
             <span>Shipping</span>
             <span>{shipping === 0 ? <span style={{ color: '#2d6a4f' }}>FREE</span> : formatINR(shipping)}</span>
           </div>
-          <div className="summary-row"><span>Tax (5%)</span><span>{formatINR(tax)}</span></div>
+          <div className="summary-row"><span>Tax (3%)</span><span>{formatINR(tax)}</span></div>
           <div className="summary-row total"><span>Total</span><span>{formatINR(total)}</span></div>
 
           <button type="submit" className="place-order-btn" disabled={submitting}>

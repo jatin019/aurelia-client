@@ -219,7 +219,17 @@
   border-radius: 50%;
   display: block;
 }
+.pdp-stock-left {
+  margin: 8px 0 14px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  color: #2d6a4f;
+}
 
+.pdp-stock-left.low {
+  color: #c0392b;
+  font-weight: 500;
+}
 /* ── FULL-WIDTH TRUST STRIP (below grid) ── */
 
 @media (max-width: 480px) {
