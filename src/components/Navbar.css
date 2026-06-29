@@ -161,41 +161,31 @@
 
   .nav-logo {
     position: static;
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 1;
     min-width: 0;
     max-width: none;
-    padding-right: 104px;
+    padding: 0 42px;
     transform: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: center;
     font-size: 13px;
     letter-spacing: 0.1em;
     line-height: 1.2;
   }
 
   .nav-right {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    z-index: 2;
-    width: 104px;
-    height: 32px;
-    gap: 0;
+    grid-column: 2;
+    grid-row: 2;
+    position: static;
+    width: auto;
+    height: auto;
+    gap: 8px;
     margin-left: 0;
-    pointer-events: none;
-  }
-
-  .nav-right .icon-btn {
-    position: absolute;
-    top: 0;
     pointer-events: auto;
   }
-
-  .nav-right .icon-btn:nth-child(1) { right: 72px; }
-  .nav-right .icon-btn:nth-child(2) { right: 36px; }
-  .nav-right .icon-btn:nth-child(3) { right: 0; }
 
   .icon-btn {
     flex: 0 0 auto;
@@ -205,7 +195,7 @@
   }
 
   .nav-left {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
     gap: 14px;
     overflow-x: auto;
@@ -237,17 +227,12 @@
   .nav-logo {
     font-size: 12px;
     letter-spacing: 0.08em;
-    padding-right: 96px;
+    padding: 0 36px;
   }
 
   .nav-right {
-    right: 10px;
-    width: 96px;
+    gap: 4px;
   }
-
-  .nav-right .icon-btn:nth-child(1) { right: 64px; }
-  .nav-right .icon-btn:nth-child(2) { right: 32px; }
-  .nav-right .icon-btn:nth-child(3) { right: 0; }
 
   .nav-link {
     font-size: 8px;
