@@ -96,7 +96,7 @@
 
 /* ── RETURN POLICY POPUP ── */
 .policy-backdrop {
-  position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000;
+  position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000;
   animation:fadeIn 0.25s ease;
 }
 @keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
@@ -104,7 +104,7 @@
 .policy-popup {
   position:fixed; top:50%; left:50%;
   transform:translate(-50%,-50%);
-  z-index:3001;
+  z-index:4001;
   background:#fff; border-radius:18px;
   width:min(580px,92vw); max-height:80vh;
   display:flex; flex-direction:column;
@@ -140,6 +140,22 @@
 @media (max-width:480px) {
   .footer-inner { grid-template-columns:1fr; padding:32px 5vw 24px; gap:24px; }
   .footer-bottom { flex-direction:column; align-items:flex-start; padding:14px 5vw; }
+  .policy-popup {
+    width: calc(100vw - 28px);
+    max-height: min(78vh, 620px);
+    border-radius: 14px;
+  }
+  .policy-popup-header {
+    padding: 18px 18px 14px;
+  }
+  .policy-popup-title {
+    font-size: 23px;
+  }
+  .policy-popup-body {
+    padding: 18px;
+    font-size: 13px;
+    line-height: 1.75;
+  }
 }
 
 /* Footer.css — ADD THESE STYLES at the bottom of your existing Footer.css */

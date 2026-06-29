@@ -226,12 +226,12 @@ export default function Footer() {
       {policyOpen && (
         <>
           <div className="policy-backdrop" onClick={() => setPolicyOpen(false)} />
-          <div className="policy-modal">
-            <div className="policy-modal-header">
-              <h3>Return Policy</h3>
-              <button onClick={() => setPolicyOpen(false)}>✕</button>
+          <div className="policy-popup" role="dialog" aria-modal="true" aria-labelledby="return-policy-title">
+            <div className="policy-popup-header">
+              <h3 id="return-policy-title" className="policy-popup-title">Return Policy</h3>
+              <button className="policy-popup-close" onClick={() => setPolicyOpen(false)} aria-label="Close return policy">✕</button>
             </div>
-            <div className="policy-modal-body">
+            <div className="policy-popup-body">
               {policyText.split('\n').map((line, i) => (
                 <React.Fragment key={i}>{line}<br /></React.Fragment>
               ))}
