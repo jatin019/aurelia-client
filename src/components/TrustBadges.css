@@ -17,19 +17,45 @@
 @media (max-width: 768px) { .trust-badges-strip { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
 @media (max-width: 480px) {
   .trust-badges-strip {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+    padding: 14px 0 12px;
+    margin-top: 12px;
   }
 
   .trust-badge-item {
-    align-items: flex-start;
+    align-items: center;
+    gap: 8px;
     min-width: 0;
+  }
+
+  .trust-badge-icon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .trust-badge-label {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .trust-badge-sub {
+    font-size: 9px;
+    line-height: 1.25;
   }
 
   .trust-badge-label,
   .trust-badge-sub {
     overflow-wrap: anywhere;
-    line-height: 1.35;
+  }
+}
+
+@media (max-width: 340px) {
+  .trust-badges-strip {
+    gap: 12px 8px;
+  }
+
+  .trust-badge-sub {
+    display: none;
   }
 }

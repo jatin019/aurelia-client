@@ -245,9 +245,10 @@
   .pdp-related-grid { grid-template-columns:repeat(2,1fr); }
 }
 @media (max-width:480px) {
-  .pdp-wrapper { padding-top: var(--navbar-h); }
-  .pdp-breadcrumb { padding: 12px 4vw 0; }
-  .pdp-grid { padding: 14px 4vw 32px; gap: 18px; }
+  .pdp-wrapper { padding-top: 0; }
+  .pdp-breadcrumb { padding: 14px 4vw 0; }
+  .pdp-grid { padding: 12px 4vw 28px; gap: 14px; }
+  .pdp-image-section { gap: 8px; }
   .pdp-image-main { border-radius: 12px; max-height: none; }
   .pdp-eyebrow {
     align-items: flex-start;
