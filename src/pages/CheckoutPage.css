@@ -384,3 +384,32 @@
   .order-summary { position: static; }
   .form-row, .form-row.triple { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 640px) {
+  .checkout-header { padding: 24px 4vw 18px; }
+  .checkout-grid { padding: 20px 4vw 48px; gap: 20px; }
+  .checkout-section,
+  .order-summary {
+    border-radius: 12px;
+    padding: 18px 16px;
+  }
+  .checkout-section h3 {
+    align-items: flex-start;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+  .coupon-row,
+  .checkout-trust {
+    flex-wrap: wrap;
+  }
+  .coupon-row button {
+    flex: 1 0 100%;
+  }
+  .summary-item-name {
+    white-space: normal;
+    line-height: 1.3;
+  }
+  .payment-icons {
+    margin-left: 0;
+  }
+}

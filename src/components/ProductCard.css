@@ -24,7 +24,25 @@
 .product-rating { font-family:'Jost',sans-serif; font-size:10px; font-weight:400; color:#aaa; }
 
 @media (max-width:640px) {
-  .product-card { flex:0 0 130px; }
-  .product-img-wrap { width:130px; height:130px; }
+  .product-card { flex:0 0 136px; }
+  .product-img-wrap { width:136px; height:136px; }
+  .add-btn {
+    opacity: 1;
+    transform: translateX(-50%);
+    padding: 7px 11px;
+  }
+  .product-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .product-price-row {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
 }
 
+@media (max-width:360px) {
+  .product-card { flex-basis: 128px; }
+  .product-img-wrap { width:128px; height:128px; }
+}

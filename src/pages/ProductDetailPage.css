@@ -245,7 +245,37 @@
   .pdp-related-grid { grid-template-columns:repeat(2,1fr); }
 }
 @media (max-width:480px) {
+  .pdp-wrapper { padding-top: var(--navbar-h); }
+  .pdp-breadcrumb { padding: 12px 4vw 0; }
+  .pdp-grid { padding: 14px 4vw 32px; gap: 18px; }
+  .pdp-image-main { border-radius: 12px; max-height: none; }
+  .pdp-eyebrow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pdp-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pdp-tabs::-webkit-scrollbar { display: none; }
+  .pdp-tab {
+    flex: 0 0 auto;
+    padding-right: 16px;
+    white-space: nowrap;
+  }
   .pdp-badges { grid-template-columns:1fr; }
   .pdp-cart-row { flex-wrap:wrap; }
   .pdp-add-btn { flex:none; width:100%; }
+  .pdp-related { padding: 0 4vw 48px; }
+  .pdp-related-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pdp-related-grid { gap: 12px; }
+  .pdp-related-name {
+    font-size: 12px;
+    line-height: 1.25;
+  }
 }

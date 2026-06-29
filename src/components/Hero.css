@@ -216,10 +216,137 @@
   .hero-bottom { padding: 14px 5vw 18px; }
 }
 @media (max-width: 600px) {
+  .hero {
+    height: auto;
+    min-height: 560px;
+    justify-content: flex-start;
+  }
+
+  .hero-bg-overlay {
+    background:
+      linear-gradient(to bottom, rgba(10,8,6,0.62) 0%, rgba(10,8,6,0.45) 38%, rgba(10,8,6,0.78) 100%);
+  }
+
+  .hero-sale-banner {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 8px 14px;
+    text-align: center;
+  }
+
+  .hsb-text {
+    flex: 1 1 180px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .hero-body {
+    flex: none;
+    display: block;
+    padding: 48px 6vw 20px;
+  }
+
+  .hero-center {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .hero-eyebrow {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow-line {
+    width: 22px;
+  }
+
+  .hero-eyebrow span {
+    font-size: 8px;
+    letter-spacing: 0.16em;
+  }
+
   .hero-h-line { font-size: clamp(32px, 9vw, 50px); }
+  .hero-heading {
+    margin-bottom: 16px;
+  }
+
+  .hero-sub {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+  }
+
   .hero-btns { gap: 10px; }
-  .btn-primary, .btn-ghost { padding: 11px 20px; font-size: 10px; }
-  .hero-stats-card { margin: 0 4vw; gap: 0; }
-  .hero-stat-item { padding: 0 12px; }
+  .btn-primary,
+  .btn-ghost {
+    justify-content: center;
+    min-height: 42px;
+    padding: 11px 16px;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .hero-stats-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: calc(100% - 8vw);
+    margin: 0 4vw 8px;
+    padding: 12px;
+    border-radius: 12px;
+    gap: 8px;
+  }
+
+  .hero-stat-item {
+    min-width: 0;
+    padding: 0;
+  }
+
   .stat-value { font-size: clamp(18px, 5vw, 24px); }
+  .stat-label {
+    display: block;
+    font-size: 7px;
+    line-height: 1.35;
+    letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-stat-item + .hero-stat-item {
+    border-left: 0;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 8px;
+  }
+
+  .hero-bottom {
+    padding: 8px 6vw 18px;
+  }
+
+  .hero-scroll-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero {
+    min-height: 640px;
+  }
+
+  .hero-body {
+    padding-top: 38px;
+  }
+
+  .hero-btns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+}
+
+@media (max-width: 360px) {
+  .hero {
+    min-height: 670px;
+  }
 }

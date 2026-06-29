@@ -127,7 +127,7 @@
 @media (max-width:640px) {
   .cat-grid {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, 160px);
+    grid-template-rows: repeat(3, minmax(140px, 38vw));
     gap: 8px;
   }
   .carousel-feature { grid-row:auto; grid-column:auto; }
@@ -136,4 +136,26 @@
   .carousel-title { font-size:16px; }
   .section-divider { padding:16px 4vw 12px; }
   .row-gap { padding:12px 4vw; }
+}
+
+@media (max-width:420px) {
+  .cat-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .cat-item,
+  .carousel-feature {
+    min-height: 170px;
+  }
+
+  .divider-label {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .gap-text {
+    font-size: 17px;
+    text-align: center;
+  }
 }

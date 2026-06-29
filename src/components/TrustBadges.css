@@ -15,4 +15,21 @@
 .trust-badge-sub { font-family: 'Jost', sans-serif; font-size: 11px; color: #888; }
 
 @media (max-width: 768px) { .trust-badges-strip { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
-@media (max-width: 480px) { .trust-badges-strip { grid-template-columns: 1fr; } }
+@media (max-width: 480px) {
+  .trust-badges-strip {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px 0;
+  }
+
+  .trust-badge-item {
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .trust-badge-label,
+  .trust-badge-sub {
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+}

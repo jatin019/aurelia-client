@@ -88,5 +88,24 @@
 .wc-remove-btn:hover { background: #ffe0dc; }
 
 @media (max-width: 640px) {
-  .wishlist-grid { grid-template-columns: repeat(2,1fr); gap:12px; padding:20px 4vw 56px; }
+  .wishlist-header { padding: 28px 4vw 20px; }
+  .wishlist-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px; padding:20px 4vw 56px; }
+  .wc-info { padding: 12px 12px 0; }
+  .wc-cat {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wc-actions { padding: 0 12px 14px; }
+  .wc-add-btn {
+    min-width: 0;
+    padding: 10px 8px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  .wc-price-row { flex-wrap: wrap; gap: 3px 7px; }
+}
+
+@media (max-width: 360px) {
+  .wishlist-grid { grid-template-columns: 1fr; }
 }
