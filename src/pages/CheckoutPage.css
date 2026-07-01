@@ -1,7 +1,7 @@
-.checkout-page { background: #F5F3EE; min-height: 100vh; padding-top: var(--navbar-h); }
+.checkout-page { background: #F5F3EE; min-height: 100vh; padding-top: 0; }
 
 .checkout-header {
-  text-align: center; padding: 32px 5vw 24px;
+  text-align: center; padding: 16px 5vw 14px;
   border-bottom: 1px solid #e0ddd8;
 }
 .checkout-title {
@@ -386,7 +386,7 @@
 }
 
 @media (max-width: 640px) {
-  .checkout-header { padding: 24px 4vw 18px; }
+  .checkout-header { padding: 14px 4vw 12px; }
   .checkout-grid { padding: 20px 4vw 48px; gap: 20px; }
   .checkout-section,
   .order-summary {

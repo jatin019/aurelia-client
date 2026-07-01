@@ -1,5 +1,5 @@
 .scroller-section {
-  padding: 36px 0 28px;
+  padding: 36px 0 20px;
   background: #F5F3EE;
   position: relative;
   width: 100%;
@@ -51,7 +51,7 @@
 }
 
 @media (max-width: 640px) {
-  .scroller-section { padding: 24px 0 18px; }
+  .scroller-section { padding: 24px 0 14px; }
   .scroller-header { padding: 0 4vw; margin-bottom: 12px; }
   .scroller-track { padding: 4px 0 10px 4vw; padding-right: 4vw; gap: 10px; }
 }

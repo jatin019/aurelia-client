@@ -89,7 +89,11 @@
 }
 
 /* ── CENTER ── */
-.hero-center { flex: 1; max-width: 620px; }
+.hero-center {
+  flex: 1;
+  max-width: 620px;
+  transform: translateY(-34px);
+}
 
 .hero-eyebrow {
   display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
@@ -249,6 +253,7 @@
   .hero-center {
     min-width: 0;
     max-width: none;
+    transform: translateY(-18px);
   }
 
   .hero-eyebrow {

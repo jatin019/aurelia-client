@@ -1,7 +1,7 @@
-.collections-page { background: #F5F3EE; min-height: 100vh; }
+.collections-page { background: #F5F3EE; min-height: 100vh; padding-top: 0; }
 
 .collections-header {
-  text-align: center; padding: 36px 5vw 28px;
+  text-align: center; padding: 16px 5vw 14px;
   border-bottom: 1px solid #e0ddd8;
 }
 .collections-title {
@@ -70,7 +70,7 @@
 
 @media (max-width: 640px) {
   .collections-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 4vw 48px; }
-  .collections-header { padding: 28px 4vw 20px; }
+  .collections-header { padding: 14px 4vw 12px; }
   .col-card { padding: 20px 18px; }
 }
 @media (max-width: 380px) {

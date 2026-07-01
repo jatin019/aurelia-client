@@ -218,11 +218,23 @@ useEffect(() => {
     let list = [...products];
     const activeSearchVal = localSearch.trim().toLowerCase();
     if (activeSearchVal) {
+      const normalize = value => String(value || '').toLowerCase();
+      const searchableText = p => [
+        p.name,
+        p.category,
+        p.subCategory,
+        ...(Array.isArray(p.subCategories) ? p.subCategories : []),
+        p.material,
+        p.collection,
+        p.badge,
+        p.description,
+        p.details,
+        ...(Array.isArray(p.tags) ? p.tags : []),
+      ].map(normalize).join(' ');
+
       list = list.filter(p => {
-        const name = (p.name || '').toLowerCase();
-        const category = (p.category || '').toLowerCase();
-        const subCategory = (p.subCategory || '').toLowerCase();
-        return name.includes(activeSearchVal) || category.includes(activeSearchVal) || subCategory.includes(activeSearchVal);
+        const haystack = searchableText(p);
+        return activeSearchVal.split(/\s+/).every(term => haystack.includes(term));
       });
     }
     if (sectionFilter) list = list.filter(p => p.section === sectionFilter);
@@ -536,12 +548,14 @@ if (appliedSubCats.length > 0) {
                 </div>
                 <div className="shop-card-info">
                   <p className="shop-card-cat">{product.category}{product.subCategory?` · ${product.subCategory}`:''}</p>
-                  <p className="shop-card-name">{product.name}</p>
-                  <div className="shop-card-bottom">
+                  <div className="shop-card-title-row">
+                    <p className="shop-card-name">{product.name}</p>
                     <div className="shop-card-price-row">
                       <span className={`shop-card-price ${sale?'on-sale':''}`}>{formatINR(ep)}</span>
                       {sale && <span className="shop-card-orig">{formatINR(product.price)}</span>}
                     </div>
+                  </div>
+                  <div className="shop-card-bottom">
                     {product.rating && <span className="shop-card-rating">★ {product.rating}</span>}
                   </div>
                 </div>

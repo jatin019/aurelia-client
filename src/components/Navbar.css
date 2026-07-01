@@ -141,6 +141,26 @@
   background: transparent;
 }
 
+.search-close-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #777;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.search-close-btn:hover {
+  background: #f0ece8;
+  color: #1a1a1a;
+}
+
 @media (max-width: 768px) {
   .navbar   { padding: 0 16px; }
   .nav-logo { font-size: 14px; letter-spacing: 0.12em; }

@@ -11,6 +11,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVal,  setSearchVal]  = useState('');
   const searchInputRef              = useRef(null);
+  const searchInnerRef              = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -18,6 +19,20 @@ export default function Navbar() {
     if (searchOpen && searchInputRef.current) {
       setTimeout(() => searchInputRef.current.focus(), 50);
     }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    const closeOnOutsideClick = (e) => {
+      if (searchInnerRef.current && !searchInnerRef.current.contains(e.target)) {
+        setSearchOpen(false);
+        setSearchVal('');
+      }
+    };
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, [searchOpen]);
 
   const handleSearch = (e) => {
@@ -65,7 +80,7 @@ export default function Navbar() {
 
       {/* Search overlay */}
       <div className={`search-overlay ${searchOpen ? 'open' : ''}`}>
-        <div className="search-inner">
+        <div className="search-inner" ref={searchInnerRef}>
           <Search size={15} color="#999" strokeWidth={1.5} />
           <input
             ref={searchInputRef}
@@ -75,7 +90,7 @@ export default function Navbar() {
             onChange={e => setSearchVal(e.target.value)}
             onKeyDown={handleSearch}
           />
-          <button className="icon-btn" onClick={() => { setSearchOpen(false); setSearchVal(''); }}>
+          <button className="search-close-btn" onClick={() => { setSearchOpen(false); setSearchVal(''); }} aria-label="Close search">
             <X size={16} strokeWidth={1.5} />
           </button>
         </div>

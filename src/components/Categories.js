@@ -55,7 +55,8 @@ function ImageCarousel({ slides, onExplore, exploreLabel }) {
     <div className="carousel-feature">
       {slides.map((slide, i) => (
         <div key={i} className={`carousel-slide ${i === current ? 'active' : ''}`}>
-          <img src={slide.src} alt={slide.caption} />
+          <img className="carousel-img-bg" src={slide.src} alt="" aria-hidden="true" />
+          <img className="carousel-img-main" src={slide.src} alt={slide.caption} />
         </div>
       ))}
       <div className="carousel-overlay">
@@ -105,14 +106,16 @@ export default function Categories() {
         <div className="cat-grid">
           {row1.slice(0,2).map(c => (
             <div className="cat-item" key={c.id} onClick={() => navigate(`/shop?cat=${c.id}`)}>
-              <img src={c.image} alt={c.label} />
+              <img className="cat-img-bg" src={c.image} alt="" aria-hidden="true" />
+              <img className="cat-img-main" src={c.image} alt={c.label} />
               <div className="cat-overlay"><span className="cat-label">{c.label}</span></div>
             </div>
           ))}
           <ImageCarousel slides={c1} onExplore={() => navigate('/shop')} exploreLabel="EXPLORE ALL →" />
           {row1.slice(2,4).map(c => (
             <div className="cat-item" key={c.id} onClick={() => navigate(`/shop?cat=${c.id}`)}>
-              <img src={c.image} alt={c.label} />
+              <img className="cat-img-bg" src={c.image} alt="" aria-hidden="true" />
+              <img className="cat-img-main" src={c.image} alt={c.label} />
               <div className="cat-overlay"><span className="cat-label">{c.label}</span></div>
             </div>
           ))}
@@ -131,14 +134,16 @@ export default function Categories() {
         <div className="cat-grid">
           {row2.slice(0,2).map(c => (
             <div className="cat-item" key={c.id} onClick={() => navigate(`/shop?cat=${c.id}`)}>
-              <img src={c.image} alt={c.label} />
+              <img className="cat-img-bg" src={c.image} alt="" aria-hidden="true" />
+              <img className="cat-img-main" src={c.image} alt={c.label} />
               <div className="cat-overlay"><span className="cat-label">{c.label}</span></div>
             </div>
           ))}
           <ImageCarousel slides={c2} onExplore={() => navigate('/collections')} exploreLabel="THE BRIDAL EDIT →" />
           {row2.slice(2,4).map(c => (
             <div className="cat-item" key={c.id} onClick={() => navigate(`/shop?cat=${c.id}`)}>
-              <img src={c.image} alt={c.label} />
+              <img className="cat-img-bg" src={c.image} alt="" aria-hidden="true" />
+              <img className="cat-img-main" src={c.image} alt={c.label} />
               <div className="cat-overlay"><span className="cat-label">{c.label}</span></div>
             </div>
           ))}

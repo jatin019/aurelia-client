@@ -26,7 +26,6 @@ const DEFAULT_HERO_CONTENT = {
   subtext: 'Handcrafted for the moments that take your breath away. Ethically sourced, masterfully designed, forever yours.',
   btnPrimaryText: 'SHOP COLLECTION',
   btnGhostText: 'THE GIFT GUIDE',
-  sideLabel: 'KANYAMAA COLLECTIONS FINE JEWELLERY — EST. 1994',
   stats: DEFAULT_STATS,
 };
 
@@ -57,7 +56,7 @@ export default function Hero() {
           ...(data.subtext             && { subtext:        data.subtext       }),
           ...(data.btnPrimaryText      && { btnPrimaryText: data.btnPrimaryText }),
           ...(data.btnGhostText        && { btnGhostText:   data.btnGhostText  }),
-          ...(data.sideLabel           && { sideLabel:      data.sideLabel     }),
+          
           ...(data.stats?.length       && { stats:          data.stats         }),
         }));
       }
@@ -151,16 +150,6 @@ export default function Hero() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* STATS CARD */}
-        <div className="hero-stats-card">
-          {heroData.stats.map((s, i) => (
-            <div className="hero-stat-item" key={i}>
-              <span className="stat-value">{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          ))}
         </div>
 
         {/* BOTTOM BAR */}

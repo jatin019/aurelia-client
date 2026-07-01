@@ -379,10 +379,12 @@ export default function ProductDetailPage() {
                     {dp > 0 && <span className="pdp-related-sale">-{dp}%</span>}
                     <img src={p.image} alt={p.name} />
                   </div>
-                  <p className="pdp-related-name">{p.name}</p>
-                  <div className="pdp-related-price-row">
-                    <span className="pdp-related-price">{formatINR(ep)}</span>
-                    {dp > 0 && <span className="pdp-related-orig">{formatINR(p.price)}</span>}
+                  <div className="pdp-related-title-row">
+                    <p className="pdp-related-name">{p.name}</p>
+                    <div className="pdp-related-price-row">
+                      <span className="pdp-related-price">{formatINR(ep)}</span>
+                      {dp > 0 && <span className="pdp-related-orig">{formatINR(p.price)}</span>}
+                    </div>
                   </div>
                 </div>
               );
