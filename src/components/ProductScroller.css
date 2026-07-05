@@ -5,6 +5,9 @@
   width: 100%;
   overflow: hidden;
 }
+.scroller-section.compact-bottom {
+  padding-bottom: 6px;
+}
 .scroller-header {
   display: flex; align-items: center;
   justify-content: space-between;
@@ -26,7 +29,7 @@
 
 .scroller-track {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   width: max-content;
   padding: 4px 0 12px 5vw;
   /* Trailing space so last card isn't flush */
@@ -52,6 +55,7 @@
 
 @media (max-width: 640px) {
   .scroller-section { padding: 24px 0 14px; }
+  .scroller-section.compact-bottom { padding-bottom: 4px; }
   .scroller-header { padding: 0 4vw; margin-bottom: 12px; }
-  .scroller-track { padding: 4px 0 10px 4vw; padding-right: 4vw; gap: 10px; }
+  .scroller-track { padding: 4px 0 10px 4vw; padding-right: 4vw; gap: 8px; }
 }

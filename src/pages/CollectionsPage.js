@@ -1,20 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight, Gift, Sparkles, Star } from 'lucide-react';
 import { db } from '../firebase/config';
 import { doc, onSnapshot } from 'firebase/firestore';
 import './CollectionsPage.css';
 
 const DEFAULT_COLLECTIONS = [
-  { id:'bestSellers', title:'Best Sellers',          subtitle:'Our most loved pieces by customers',        link:'/shop?section=bestSellers', tag:'POPULAR',   icon:'⭐', active:true },
-  { id:'newArrivals', title:'New Arrivals',           subtitle:'Fresh additions to our collection',          link:'/shop?section=newArrivals', tag:'NEW',       icon:'✨', active:true },
-  { id:'combo',       title:'Combo',                 subtitle:'Mix & match sets at special prices',         link:'/shop?section=combo',       tag:'COMBO',     icon:'🎁', active:true },
-  { id:'under50k',    title:'Under ₹50,000',          subtitle:'Affordable elegance for every budget',       link:'/shop?maxPrice=50000',      tag:'BUDGET',    icon:'💎', active:true },
-  { id:'50k-1l',      title:'₹50,000 – ₹1,00,000',   subtitle:'Beautiful pieces at great value',            link:'/shop?minPrice=50000&maxPrice=100000', tag:'VALUE', icon:'💍', active:true },
-  { id:'1l-2.5l',     title:'₹1,00,000 – ₹2,50,000', subtitle:'Premium craftsmanship, mid-range prices',   link:'/shop?minPrice=100000&maxPrice=250000', tag:'MID-RANGE', icon:'👑', active:true },
-  { id:'2.5l-5l',     title:'₹2,50,000 – ₹5,00,000', subtitle:'Luxury pieces for special occasions',       link:'/shop?minPrice=250000&maxPrice=500000', tag:'PREMIUM', icon:'🌟', active:true },
-  { id:'above5l',     title:'₹5,00,000 & Above',      subtitle:'Exclusive high-end fine jewellery',          link:'/shop?minPrice=500000',     tag:'LUXURY',    icon:'♛', active:true },
-  { id:'onSale',      title:'On Sale',                subtitle:'Grab the best deals — limited time offers', link:'/shop?sale=true',           tag:'SALE',      icon:'🏷', active:true },
+  { id: 'bestSellers', title: 'Best Sellers', subtitle: 'The pieces everyone keeps coming back for', link: '/shop?section=bestSellers', tag: 'Most loved', active: true },
+  { id: 'newArrivals', title: 'New Arrivals', subtitle: 'Fresh finds, just added to the collection', link: '/shop?section=newArrivals', tag: 'Just in', active: true },
+  { id: 'r99to199', title: '₹99 – ₹199', subtitle: 'Little luxuries, very lovely prices', link: '/shop?minPrice=99&maxPrice=199', tag: 'Sweet spot', active: true },
+  { id: 'combo', title: 'Combo Sets', subtitle: 'More ways to style, more value in every set', link: '/shop?section=combo', tag: 'Better together', active: true },
+  { id: 'under99', title: 'Under ₹99', subtitle: 'Everyday sparkle on a tiny budget', link: '/shop?maxPrice=99', tag: 'Budget edit', active: true },
+  { id: 'r199to299', title: '₹199 – ₹299', subtitle: 'Easy favourites for every mood', link: '/shop?minPrice=199&maxPrice=299', tag: 'Everyday edit', active: true },
+  { id: 'r299to399', title: '₹299 – ₹399', subtitle: 'Statement details with a refined finish', link: '/shop?minPrice=299&maxPrice=399', tag: 'Elevated', active: true },
+  { id: 'above499', title: '₹499 & Above', subtitle: 'Special pieces made to stand out', link: '/shop?minPrice=499', tag: 'Premium edit', active: true },
+  { id: 'onSale', title: 'The Sale Edit', subtitle: 'Beautiful picks at limited-time prices', link: '/shop?sale=true', tag: 'Now on sale', active: true },
 ];
+
+const isValueCollection = item => {
+  const text = `${item?.id || ''} ${item?.title || ''}`.toLowerCase();
+  return text.includes('99') && text.includes('199');
+};
+
+function CollectionLink({ item, className, children }) {
+  const navigate = useNavigate();
+  const open = () => navigate(item.link);
+
+  return (
+    <article className={className} role="link" tabIndex="0" onClick={open} onKeyDown={event => event.key === 'Enter' && open()}>
+      {children}
+    </article>
+  );
+}
 
 export default function CollectionsPage() {
   const navigate = useNavigate();
@@ -22,36 +39,101 @@ export default function CollectionsPage() {
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'site', 'collections_page'), snap => {
-      if (snap.exists() && snap.data().items?.length) {
-        setCollections(snap.data().items);
-      }
+      if (snap.exists() && snap.data().items?.length) setCollections(snap.data().items);
     }, () => {});
     return () => unsub();
   }, []);
 
-  const visibleCollections = collections.filter(c => c.active !== false);
+  const visible = collections.filter(item => item.active !== false);
+  const bestSellers = visible.find(item => String(item.id).toLowerCase() === 'bestsellers') || visible[0];
+  const newArrivals = visible.find(item => String(item.id).toLowerCase() === 'newarrivals') || visible[1];
+  const valuePick = visible.find(isValueCollection) || visible[2];
+  const featuredIds = new Set([bestSellers?.id, newArrivals?.id, valuePick?.id]);
+  const remaining = visible.filter(item => !featuredIds.has(item.id));
 
   return (
-    <div className="page-wrapper collections-page">
-      <div className="collections-header">
-        <h1 className="collections-title">Collections</h1>
-        <p className="collections-sub">Shop by category and price range</p>
-      </div>
-      <div className="collections-grid">
-        {visibleCollections.map(col => (
-          <div className="col-card" key={col.id} onClick={() => navigate(col.link)}>
-            <div className="col-card-icon">{col.icon}</div>
-            <div className="col-card-info">
-              <span className={`col-tag ${col.id === 'combo' ? 'col-tag-combo' : ''}`}>
-                {col.tag}
-              </span>
-              <h3 className="col-card-title">{col.title}</h3>
-              <p className="col-card-sub">{col.subtitle}</p>
-              <span className="col-card-link">Explore →</span>
-            </div>
+    <main className="page-wrapper collections-page">
+      <header className="collections-intro">
+        <div className="collections-intro-index">01 — 09</div>
+        <div className="collections-intro-copy">
+          <span className="collections-kicker"><Sparkles size={13} /> Find your next favourite</span>
+          <h1>Collections<br /><em>for every you.</em></h1>
+          <p>Fresh drops, loved favourites, smart prices and better-together sets. Start with what feels right.</p>
+          <button type="button" onClick={() => navigate('/shop')}>Shop everything <ArrowRight size={16} /></button>
+        </div>
+        <div className="collections-intro-side">
+          <span>Jewellery edits</span>
+          <strong>Everyday<br />to occasion</strong>
+        </div>
+      </header>
+
+      <section className="collections-featured">
+        <div className="collections-heading-row">
+          <div><span>01</span><h2>Start with the favourites</h2></div>
+          <p>Two edits, two moods. Discover what is new or see what everyone already loves.</p>
+        </div>
+        <div className="collections-featured-grid">
+          {bestSellers && (
+            <CollectionLink item={bestSellers} className="collection-major collection-major-dark">
+              <div className="collection-major-top"><span>{bestSellers.tag}</span><Star size={22} strokeWidth={1.4} /></div>
+              <div>
+                <span className="collection-number">01</span>
+                <h3>{bestSellers.title}</h3>
+                <p>{bestSellers.subtitle}</p>
+              </div>
+              <span className="collection-explore">Explore collection <ArrowUpRight size={17} /></span>
+            </CollectionLink>
+          )}
+          {newArrivals && (
+            <CollectionLink item={newArrivals} className="collection-major collection-major-pink">
+              <div className="collection-major-top"><span>{newArrivals.tag}</span><Sparkles size={22} strokeWidth={1.4} /></div>
+              <div>
+                <span className="collection-number">02</span>
+                <h3>{newArrivals.title}</h3>
+                <p>{newArrivals.subtitle}</p>
+              </div>
+              <span className="collection-explore">See what is new <ArrowUpRight size={17} /></span>
+            </CollectionLink>
+          )}
+        </div>
+      </section>
+
+      {valuePick && (
+        <section className="collections-value" onClick={() => navigate(valuePick.link)} role="link" tabIndex="0" onKeyDown={event => event.key === 'Enter' && navigate(valuePick.link)}>
+          <div className="collections-value-label">Best value</div>
+          <div className="collections-value-price"><span>From</span><strong>₹99</strong></div>
+          <div className="collections-value-copy">
+            <span>{valuePick.tag}</span>
+            <h2>Good style.<br />Very good prices.</h2>
+            <p>Easy-to-love pieces from ₹99 to ₹199, chosen for everyday plans and spontaneous treats.</p>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="collections-value-action"><ArrowRight size={24} /><span>Shop ₹99 — ₹199</span></div>
+        </section>
+      )}
+
+      <section className="collections-directory">
+        <div className="collections-heading-row">
+          <div><span>02</span><h2>Shop your way</h2></div>
+          <p>Browse by price, pick up a combo, or find something special in the sale.</p>
+        </div>
+        <div className="collections-list">
+          {remaining.map((item, index) => {
+            const isCombo = String(item.id).toLowerCase().includes('combo');
+            return (
+              <CollectionLink item={item} className={`collection-row ${isCombo ? 'collection-row-combo' : ''}`} key={item.id}>
+                <span className="collection-row-index">{String(index + 3).padStart(2, '0')}</span>
+                <span className="collection-row-tag">{item.tag}</span>
+                <div className="collection-row-copy">
+                  <h3>{item.title}</h3>
+                  <p>{item.subtitle}</p>
+                </div>
+                {isCombo && <Gift size={19} strokeWidth={1.4} />}
+                <ArrowUpRight className="collection-row-arrow" size={21} />
+              </CollectionLink>
+            );
+          })}
+        </div>
+      </section>
+    </main>
   );
 }

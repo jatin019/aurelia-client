@@ -52,6 +52,7 @@ export default function HomePage() {
           title="New Arrivals"
           products={newArrivals}
           linkTo="/shop?section=newArrivals"
+          compactBottom
         />
       )}
 

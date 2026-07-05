@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import './ProductScroller.css';
 
-export default function ProductScroller({ title, products, linkTo }) {
+export default function ProductScroller({ title, products, linkTo, compactBottom = false }) {
   const windowRef   = useRef(null);
   const animRef     = useRef(null);
   const pausedRef   = useRef(false);
@@ -70,7 +70,7 @@ export default function ProductScroller({ title, products, linkTo }) {
   if (!products.length) return null;
 
   return (
-    <section className="scroller-section">
+    <section className={`scroller-section${compactBottom ? ' compact-bottom' : ''}`}>
       <div className="scroller-header">
         <h2 className="section-title">{title}</h2>
         <button className="view-all-link" onClick={() => navigate(linkTo)}>
