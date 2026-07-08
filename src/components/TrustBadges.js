@@ -8,7 +8,7 @@ const DEFAULT_BADGES = [
   { iconKey: 'truck',   label: 'Free Shipping',  sub: 'On orders above ₹599' },
   { iconKey: 'returns', label: 'Easy Returns',   sub: '7-day return policy'   },
   { iconKey: 'shield',  label: 'Authentic',      sub: 'Certified jewellery'   },
-  { iconKey: 'cod',     label: 'COD Available',  sub: 'Pay on delivery'       },
+  { iconKey: 'cod',     label: 'COD Not Available',  sub: 'Pay through UPI '       },
 ];
 
 const ICON_MAP = {

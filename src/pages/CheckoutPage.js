@@ -2,16 +2,45 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { collection, addDoc, serverTimestamp, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc, onSnapshot, runTransaction } from 'firebase/firestore';
 import { CartContext } from '../App';
 import { getEffectivePrice, formatINR } from '../data/products';
 import { CheckCircle, Lock, ShieldCheck, Truck, ArrowLeft, AlertCircle } from 'lucide-react';
 import './CheckoutPage.css';
 
 const EMPTY_FORM = {
-  email: '', firstName: '', lastName: '', phone: '',
+  email: '', firstName: '', lastName: '', phone: '+91 ',
   address: '', apartment: '', city: '', state: '', zip: '',
-  country: 'India', notes: '', paymentMethod: 'cod',
+  country: 'India', notes: '', paymentMethod: 'upi_qr',
+};
+
+const cleanText = (value = '') => value.replace(/\s+/g, ' ').trim();
+const cleanName = (value = '') => cleanText(value).replace(/\b\w/g, c => c.toUpperCase());
+const normalizeEmail = (value = '') => value.trim().toLowerCase();
+const getPhoneDigits = (value = '') => {
+  let digits = value.replace(/\D/g, '');
+  if (digits.startsWith('91') && digits.length > 10) digits = digits.slice(2);
+  return digits.slice(0, 10);
+};
+const formatIndianPhone = (value = '') => {
+  const digits = getPhoneDigits(value);
+  return digits.length > 5 ? `+91 ${digits.slice(0, 5)} ${digits.slice(5)}` : `+91 ${digits}`;
+};
+
+const makeDateKey = (date = new Date()) => {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yy = String(date.getFullYear()).slice(-2);
+  return `${dd}${mm}${yy}`;
+};
+
+const makeSecret = () => {
+  if (window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(8);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return Math.random().toString(36).slice(2, 14);
 };
 
 const INDIAN_STATES = [
@@ -66,36 +95,70 @@ export default function CheckoutPage() {
   }, []);
 
   const validateField = (name, value) => {
+    const trimmed = cleanText(value);
+
     switch (name) {
       case 'email':
-        if (!value.trim()) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Enter a valid email address';
-        return '';
+        {
+          const email = normalizeEmail(value);
+          if (!email) return 'Email is required';
+          if (email.length > 254) return 'Email is too long';
+          if (email.includes('..')) return 'Email cannot contain consecutive dots';
+          if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i.test(email)) return 'Enter a valid email address';
+          const [localPart, domain] = email.split('@');
+          if (!localPart || !domain || localPart.length > 64) return 'Enter a valid email address';
+          if (domain.split('.').some(part => !part || part.startsWith('-') || part.endsWith('-'))) return 'Enter a valid email address';
+          return '';
+        }
       case 'firstName':
-        if (!value.trim()) return 'First name is required';
-        if (value.trim().length < 2) return 'Must be at least 2 characters';
-        return '';
       case 'lastName':
-        if (!value.trim()) return 'Last name is required';
-        if (value.trim().length < 2) return 'Must be at least 2 characters';
-        return '';
+        {
+          const label = name === 'firstName' ? 'First name' : 'Last name';
+          if (!trimmed) return `${label} is required`;
+          if (trimmed.length < 2) return 'Must be at least 2 characters';
+          if (trimmed.length > 40) return 'Must be 40 characters or less';
+          if (!/^[A-Za-z][A-Za-z\s.'-]*$/.test(trimmed)) return 'Use letters only for the name';
+          if (/(.)\1{3,}/.test(trimmed.replace(/\s/g, ''))) return 'Please enter a valid name';
+          return '';
+        }
       case 'phone':
-        if (!value.trim()) return 'Phone number is required';
-        if (!/^[+]?[\d\s-]{10,15}$/.test(value.replace(/\s/g, ''))) return 'Enter a valid phone number';
-        return '';
+        {
+          const digits = getPhoneDigits(value);
+          if (!digits) return 'Phone number is required';
+          if (digits.length !== 10) return 'Enter a 10-digit mobile number';
+          if (!/^[6-9]\d{9}$/.test(digits)) return 'Enter a valid Indian mobile number starting with 6, 7, 8, or 9';
+          if (/^(\d)\1{9}$/.test(digits)) return 'Enter a valid mobile number';
+          return '';
+        }
       case 'address':
-        if (!value.trim()) return 'Street address is required';
-        if (value.trim().length < 5) return 'Please enter a complete address';
+        if (!trimmed) return 'Street address is required';
+        if (trimmed.length < 8) return 'Please enter a complete address';
+        if (trimmed.length > 160) return 'Address must be 160 characters or less';
+        if (!/[A-Za-z]/.test(trimmed) || !/\d/.test(trimmed)) return 'Include house/building number and street name';
+        if (!/^[A-Za-z0-9\s,./#&()'-]+$/.test(trimmed)) return 'Address contains unsupported characters';
+        return '';
+      case 'apartment':
+        if (trimmed.length > 80) return 'Apartment details must be 80 characters or less';
+        if (trimmed && !/^[A-Za-z0-9\s,./#&()'-]+$/.test(trimmed)) return 'Apartment details contain unsupported characters';
         return '';
       case 'city':
-        if (!value.trim()) return 'City is required';
+        if (!trimmed) return 'City is required';
+        if (trimmed.length < 2) return 'Enter a valid city';
+        if (trimmed.length > 60) return 'City must be 60 characters or less';
+        if (!/^[A-Za-z][A-Za-z\s.'-]*$/.test(trimmed)) return 'City should contain letters only';
         return '';
       case 'state':
-        if (!value.trim()) return 'State is required';
+        if (!trimmed) return 'State is required';
+        if (!INDIAN_STATES.includes(trimmed)) return 'Select a valid state';
         return '';
       case 'zip':
-        if (!value.trim()) return 'PIN code is required';
-        if (!/^\d{6}$/.test(value.trim())) return 'Enter a valid 6-digit PIN code';
+        if (!trimmed) return 'PIN code is required';
+        if (!/^\d{6}$/.test(trimmed)) return 'Enter a valid 6-digit PIN code';
+        if (!/^[1-9]/.test(trimmed)) return 'PIN code cannot start with 0';
+        if (/^(\d)\1{5}$/.test(trimmed)) return 'Enter a valid PIN code';
+        return '';
+      case 'notes':
+        if (trimmed.length > 250) return 'Order notes must be 250 characters or less';
         return '';
       default: return '';
     }
@@ -103,20 +166,40 @@ export default function CheckoutPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    let nextValue = value;
+
+    if (name === 'phone') nextValue = formatIndianPhone(value);
+    if (name === 'zip') nextValue = value.replace(/\D/g, '').slice(0, 6);
+    if (name === 'email') nextValue = value.replace(/\s/g, '').slice(0, 254);
+    if (name === 'firstName' || name === 'lastName' || name === 'city') {
+      nextValue = value.replace(/[^A-Za-z\s.'-]/g, '').replace(/\s{2,}/g, ' ').slice(0, name === 'city' ? 60 : 40);
+    }
+    if (name === 'address') nextValue = value.replace(/[^A-Za-z0-9\s,./#&()'-]/g, '').slice(0, 160);
+    if (name === 'apartment') nextValue = value.replace(/[^A-Za-z0-9\s,./#&()'-]/g, '').slice(0, 80);
+    if (name === 'notes') nextValue = value.slice(0, 250);
+
+    setForm(prev => ({ ...prev, [name]: nextValue }));
     if (touched[name]) {
-      setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
+      setErrors(prev => ({ ...prev, [name]: validateField(name, nextValue) }));
     }
   };
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
+    let nextValue = cleanText(value);
+
+    if (name === 'phone') nextValue = formatIndianPhone(value);
+    if (name === 'email') nextValue = normalizeEmail(value);
+    if (name === 'firstName' || name === 'lastName') nextValue = cleanName(value);
+    if (name === 'city') nextValue = cleanName(value);
+
+    setForm(prev => ({ ...prev, [name]: nextValue }));
     setTouched(prev => ({ ...prev, [name]: true }));
-    setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
+    setErrors(prev => ({ ...prev, [name]: validateField(name, nextValue) }));
   };
 
   const validateAll = () => {
-    const fields = ['email','firstName','lastName','phone','address','city','state','zip'];
+    const fields = ['email','firstName','lastName','phone','address','apartment','city','state','zip','notes'];
     const newErrors = {};
     let isValid = true;
     fields.forEach(field => {
@@ -205,30 +288,69 @@ export default function CheckoutPage() {
     }
     setSubmitting(true);
     try {
-      const orderData = {
-        customer: {
-          email: form.email.trim(), firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(), phone: form.phone.trim(),
-        },
-        shippingAddress: {
-          address: form.address.trim(), apartment: form.apartment.trim(),
-          city: form.city.trim(), state: form.state.trim(),
-          zip: form.zip.trim(), country: form.country,
-        },
-        items: cart.map(i => ({
-          id: i.id, name: i.name, price: getEffectivePrice(i),
-          originalPrice: i.price, qty: i.qty, image: i.image,
-          category: i.category || '', size: i.selectedSize || '',
-        })),
-        notes: form.notes.trim(), paymentMethod: form.paymentMethod,
-        subtotal, shipping, tax, discount,
-        couponCode: appliedCoupon?.code || '', total,
-        status: 'pending', createdAt: serverTimestamp(),
+      const sanitizedForm = {
+        email: normalizeEmail(form.email),
+        firstName: cleanName(form.firstName),
+        lastName: cleanName(form.lastName),
+        phone: formatIndianPhone(form.phone),
+        address: cleanText(form.address),
+        apartment: cleanText(form.apartment),
+        city: cleanName(form.city),
+        state: form.state,
+        zip: form.zip.trim(),
+        country: form.country,
+        notes: cleanText(form.notes),
       };
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      setOrderSuccess({ id: docRef.id, total });
+      const dateKey = makeDateKey();
+      const secret = makeSecret();
+
+      const createdOrder = await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, 'orderCounters', dateKey);
+        const counterSnap = await transaction.get(counterRef);
+        const nextNumber = (Number(counterSnap.data()?.count) || 0) + 1;
+        const orderNumber = `${dateKey}_${nextNumber}`;
+        const pendingOrderId = `${orderNumber}_${secret}`;
+        const orderRef = doc(db, 'pendingOrders', pendingOrderId);
+
+        const orderData = {
+          orderNumber,
+          visibleOrderId: `#${orderNumber}`,
+          customer: {
+            email: sanitizedForm.email, firstName: sanitizedForm.firstName,
+            lastName: sanitizedForm.lastName, phone: sanitizedForm.phone,
+          },
+          shippingAddress: {
+            address: sanitizedForm.address, apartment: sanitizedForm.apartment,
+            city: sanitizedForm.city, state: sanitizedForm.state,
+            zip: sanitizedForm.zip, country: sanitizedForm.country,
+          },
+          items: cart.map(i => ({
+            id: i.id, name: i.name, price: getEffectivePrice(i),
+            originalPrice: i.price, qty: i.qty, image: i.image,
+            category: i.category || '', size: i.selectedSize || '',
+          })),
+          notes: sanitizedForm.notes,
+          paymentMethod: 'upi_qr',
+          paymentStatus: 'awaiting_payment',
+          subtotal, shipping, tax, discount,
+          couponCode: appliedCoupon?.code || '',
+          payableAmount: total,
+          total,
+          status: 'payment_pending',
+          createdAt: serverTimestamp(),
+        };
+
+        transaction.set(counterRef, { count: nextNumber, updatedAt: serverTimestamp() }, { merge: true });
+        transaction.set(orderRef, orderData);
+
+        return { id: pendingOrderId, orderNumber, total };
+      });
+
       setCart([]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigate(`/payment/${createdOrder.id}`, {
+        state: { orderNumber: createdOrder.orderNumber, total: createdOrder.total },
+        replace: true,
+      });
     } catch (err) {
       console.error(err);
       alert('Could not place order. Please try again.');
@@ -257,7 +379,7 @@ export default function CheckoutPage() {
           <h2>Order Placed!</h2>
           <p>Thank you for your purchase. We've sent a confirmation to your email.</p>
           <div className="order-id-display">
-            Order ID: <strong>#{orderSuccess.id.slice(0, 10).toUpperCase()}</strong>
+            Order ID: <strong>#{orderSuccess.orderNumber || orderSuccess.id}</strong>
           </div>
           <p style={{ marginBottom: 24 }}>Total: <strong>{formatINR(orderSuccess.total)}</strong></p>
           <button className="place-order-btn" onClick={() => navigate('/')}>Continue Shopping</button>
@@ -294,7 +416,7 @@ export default function CheckoutPage() {
               <div className="checkout-field">
                 <label>Phone Number</label>
                 <input type="tel" name="phone" value={form.phone} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="+91 98765 43210" className={errors.phone && touched.phone ? 'input-error' : ''} />
+                  placeholder="+91 98765 43210" inputMode="numeric" className={errors.phone && touched.phone ? 'input-error' : ''} />
                 {errors.phone && touched.phone && <span className="field-error field-error-visible"><AlertCircle size={12} /> {errors.phone}</span>}
               </div>
             </div>
@@ -366,10 +488,7 @@ export default function CheckoutPage() {
             <h3><span className="step-num">3</span> Payment Method</h3>
             <div className="payment-methods">
               {[
-                { val:'cod',        label:'Cash on Delivery',     sub:'Pay when your order arrives' },
-                { val:'upi',        label:'UPI / GPay / PhonePe', sub:'Pay instantly via UPI' },
-                { val:'card',       label:'Credit / Debit Card',  sub:'Visa, Mastercard, RuPay' },
-                { val:'netbanking', label:'Net Banking',           sub:'All major banks supported' },
+                { val:'upi_qr', label:'UPI QR Payment', sub:'Scan the QR after placing your order, then upload UTR and screenshot' },
               ].map(pm => (
                 <label key={pm.val} className={`payment-option ${form.paymentMethod === pm.val ? 'selected' : ''}`}
                   onClick={() => setForm({ ...form, paymentMethod: pm.val })}>

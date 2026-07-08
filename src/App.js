@@ -11,6 +11,7 @@ import CollectionsPage from './pages/CollectionsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
+import PaymentPage from './pages/PaymentPage';
 import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
 import { getStockForSelection } from './data/sizeConfig';
@@ -137,6 +138,7 @@ export default function App() {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/wishlist"    element={<WishlistPage />} />
                 <Route path="/checkout"    element={<CheckoutPage />} />
+                <Route path="/payment/:orderId" element={<PaymentPage />} />
               </Routes>
             </Layout>
             <Footer />
