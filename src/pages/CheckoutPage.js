@@ -18,9 +18,8 @@ const cleanText = (value = '') => value.replace(/\s+/g, ' ').trim();
 const cleanName = (value = '') => cleanText(value).replace(/\b\w/g, c => c.toUpperCase());
 const normalizeEmail = (value = '') => value.trim().toLowerCase();
 const getPhoneDigits = (value = '') => {
-  let digits = value.replace(/\D/g, '');
-  if (digits.startsWith('91') && digits.length > 10) digits = digits.slice(2);
-  return digits.slice(0, 10);
+  const withoutCountryCode = value.replace(/^\s*\+?91\s*/, '');
+  return withoutCountryCode.replace(/\D/g, '').slice(0, 10);
 };
 const formatIndianPhone = (value = '') => {
   const digits = getPhoneDigits(value);
