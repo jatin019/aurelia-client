@@ -6,25 +6,26 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import './CollectionsPage.css';
 
 const DEFAULT_COLLECTIONS = [
-  { id: 'bestSellers', title: 'Best Sellers', subtitle: 'The pieces everyone keeps coming back for', link: '/shop?section=bestSellers', tag: 'Most loved', active: true },
-  { id: 'newArrivals', title: 'New Arrivals', subtitle: 'Fresh finds, just added to the collection', link: '/shop?section=newArrivals', tag: 'Just in', active: true },
-  { id: 'r99to199', title: '₹99 – ₹199', subtitle: 'Little luxuries, very lovely prices', link: '/shop?minPrice=99&maxPrice=199', tag: 'Sweet spot', active: true },
-  { id: 'combo', title: 'Combo Sets', subtitle: 'More ways to style, more value in every set', link: '/shop?section=combo', tag: 'Better together', active: true },
-  { id: 'under99', title: 'Under ₹99', subtitle: 'Everyday sparkle on a tiny budget', link: '/shop?maxPrice=99', tag: 'Budget edit', active: true },
-  { id: 'r199to299', title: '₹199 – ₹299', subtitle: 'Easy favourites for every mood', link: '/shop?minPrice=199&maxPrice=299', tag: 'Everyday edit', active: true },
-  { id: 'r299to399', title: '₹299 – ₹399', subtitle: 'Statement details with a refined finish', link: '/shop?minPrice=299&maxPrice=399', tag: 'Elevated', active: true },
-  { id: 'above499', title: '₹499 & Above', subtitle: 'Special pieces made to stand out', link: '/shop?minPrice=499', tag: 'Premium edit', active: true },
-  { id: 'onSale', title: 'The Sale Edit', subtitle: 'Beautiful picks at limited-time prices', link: '/shop?sale=true', tag: 'Now on sale', active: true },
+  { id: 'bestSellers', title: 'Best Sellers', subtitle: 'The pieces everyone keeps coming back for', link: '/shop?section=bestSellers', tag: 'Most loved', ctaText: 'Explore collection', active: true },
+  { id: 'newArrivals', title: 'New Arrivals', subtitle: 'Fresh finds, just added to the collection', link: '/shop?section=newArrivals', tag: 'Just in', ctaText: 'See what is new', active: true },
+  { id: 'onSale', title: 'On Sale', subtitle: 'Good style. Very good prices.', link: '/shop?sale=true', tag: 'Best value', ctaText: 'Shop sale', active: true },
+  { id: 'under99', title: 'Under ₹99', subtitle: 'Everyday sparkle on a tiny budget', link: '/shop?maxPrice=99', tag: 'Budget edit', ctaText: 'Shop under ₹99', active: true },
+  { id: 'r99to199', title: '₹99 – ₹199', subtitle: 'Little luxuries, very lovely prices', link: '/shop?minPrice=99&maxPrice=199', tag: 'Sweet spot', ctaText: 'Shop ₹99 — ₹199', active: true },
+  { id: 'r199to299', title: '₹199 – ₹299', subtitle: 'Easy favourites for every mood', link: '/shop?minPrice=199&maxPrice=299', tag: 'Everyday edit', ctaText: 'Shop ₹199 — ₹299', active: true },
+  { id: 'r299to399', title: '₹299 – ₹399', subtitle: 'Statement details with a refined finish', link: '/shop?minPrice=299&maxPrice=399', tag: 'Elevated', ctaText: 'Shop ₹299 — ₹399', active: true },
+  { id: 'above499', title: '₹499 & Above', subtitle: 'Special pieces made to stand out', link: '/shop?minPrice=499', tag: 'Premium edit', ctaText: 'Shop premium', active: true },
+  { id: 'combo', title: 'Combo Sets', subtitle: 'More ways to style, more value in every set', link: '/shop?q=combo', tag: 'Better together', ctaText: 'Shop combos', active: true },
 ];
 
-const isValueCollection = item => {
-  const text = `${item?.id || ''} ${item?.title || ''}`.toLowerCase();
-  return text.includes('99') && text.includes('199');
-};
+const isSaleCollection = item => `${item?.id || ''} ${item?.title || ''}`.toLowerCase().includes('sale');
+const findById = (items, id) => items.find(item => String(item.id).toLowerCase() === id.toLowerCase());
 
 function CollectionLink({ item, className, children }) {
   const navigate = useNavigate();
-  const open = () => navigate(item.link);
+  const open = () => {
+    if (/^https?:\/\//i.test(item.link)) window.location.href = item.link;
+    else navigate(item.link);
+  };
 
   return (
     <article className={className} role="link" tabIndex="0" onClick={open} onKeyDown={event => event.key === 'Enter' && open()}>
@@ -45,10 +46,10 @@ export default function CollectionsPage() {
   }, []);
 
   const visible = collections.filter(item => item.active !== false);
-  const bestSellers = visible.find(item => String(item.id).toLowerCase() === 'bestsellers') || visible[0];
-  const newArrivals = visible.find(item => String(item.id).toLowerCase() === 'newarrivals') || visible[1];
-  const valuePick = visible.find(isValueCollection) || visible[2];
-  const featuredIds = new Set([bestSellers?.id, newArrivals?.id, valuePick?.id]);
+  const bestSellers = findById(visible, 'bestSellers') || visible[0];
+  const newArrivals = findById(visible, 'newArrivals') || visible.find(item => item.id !== bestSellers?.id);
+  const salePick = findById(visible, 'onSale') || visible.find(isSaleCollection) || visible.find(item => item.id !== bestSellers?.id && item.id !== newArrivals?.id);
+  const featuredIds = new Set([bestSellers?.id, newArrivals?.id, salePick?.id]);
   const remaining = visible.filter(item => !featuredIds.has(item.id));
 
   return (
@@ -81,7 +82,7 @@ export default function CollectionsPage() {
                 <h3>{bestSellers.title}</h3>
                 <p>{bestSellers.subtitle}</p>
               </div>
-              <span className="collection-explore">Explore collection <ArrowUpRight size={17} /></span>
+              <span className="collection-explore">{bestSellers.ctaText || 'Explore collection'} <ArrowUpRight size={17} /></span>
             </CollectionLink>
           )}
           {newArrivals && (
@@ -92,24 +93,21 @@ export default function CollectionsPage() {
                 <h3>{newArrivals.title}</h3>
                 <p>{newArrivals.subtitle}</p>
               </div>
-              <span className="collection-explore">See what is new <ArrowUpRight size={17} /></span>
+              <span className="collection-explore">{newArrivals.ctaText || 'See what is new'} <ArrowUpRight size={17} /></span>
+            </CollectionLink>
+          )}
+          {salePick && (
+            <CollectionLink item={salePick} className="collections-value collections-sale-featured">
+              <div className="collections-value-label">{salePick.tag}</div>
+              <div className="collections-value-price"><strong>{salePick.title}</strong></div>
+              <div className="collections-value-copy">
+                <h2>{salePick.subtitle}</h2>
+              </div>
+              <div className="collections-value-action"><ArrowRight size={24} /><span>{salePick.ctaText || `Shop ${salePick.title}`}</span></div>
             </CollectionLink>
           )}
         </div>
       </section>
-
-      {valuePick && (
-        <section className="collections-value" onClick={() => navigate(valuePick.link)} role="link" tabIndex="0" onKeyDown={event => event.key === 'Enter' && navigate(valuePick.link)}>
-          <div className="collections-value-label">Best value</div>
-          <div className="collections-value-price"><span>From</span><strong>₹99</strong></div>
-          <div className="collections-value-copy">
-            <span>{valuePick.tag}</span>
-            <h2>Good style.<br />Very good prices.</h2>
-            <p>Easy-to-love pieces from ₹99 to ₹199, chosen for everyday plans and spontaneous treats.</p>
-          </div>
-          <div className="collections-value-action"><ArrowRight size={24} /><span>Shop ₹99 — ₹199</span></div>
-        </section>
-      )}
 
       <section className="collections-directory">
         <div className="collections-heading-row">

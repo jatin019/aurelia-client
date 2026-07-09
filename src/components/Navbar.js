@@ -59,6 +59,7 @@ export default function Navbar() {
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={handleHomeClick}>HOME</Link>
           <Link to="/shop"        className={`nav-link ${location.pathname === '/shop' ? 'active' : ''}`}>SHOP</Link>
           <Link to="/collections" className={`nav-link ${location.pathname === '/collections' ? 'active' : ''}`}>COLLECTIONS</Link>
+          <Link to="/shop?q=combo" className={`nav-link ${location.pathname === '/shop' && new URLSearchParams(location.search).get('q') === 'combo' ? 'active' : ''}`}>COMBO</Link>
         </div>
 
         <Link to="/" className="nav-logo" onClick={handleHomeClick}>Kanyamaa Collections</Link>
