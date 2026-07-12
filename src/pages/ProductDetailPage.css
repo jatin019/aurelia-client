@@ -67,7 +67,7 @@
 .pdp-price-note { font-family:'Jost',sans-serif; font-size:11px; font-weight:300; color:#aaa; margin-bottom:22px; }
 
 .pdp-option-group { margin-bottom:16px; }
-.pdp-option-label { font-family:'Jost',sans-serif; font-size:12px; font-weight:300; color:#666; margin-bottom:8px; }
+.pdp-option-label { font-family:'Jost',sans-serif; font-size:14px; font-weight:300; color:#666; margin-bottom:8px; }
 .pdp-option-label strong { font-weight:500; color:#1a1a1a; }
 .pdp-options { display:flex; flex-wrap:wrap; gap:8px; }
 .pdp-option-btn { font-family:'Jost',sans-serif; font-size:11px; padding:6px 14px; border-radius:100px; border:1px solid #ddd; background:transparent; color:#666; cursor:pointer; transition:all 0.22s; }
@@ -91,11 +91,11 @@
 .pdp-wishlist-btn.wishlisted { border-color:#e05c7a; color:#e05c7a; background:#fff5f7; }
 
 .pdp-tabs { display:flex; border-bottom:1px solid #e8e5e0; margin-bottom:12px; }
-.pdp-tab { background:none; border:none; border-bottom:2px solid transparent; font-family:'Jost',sans-serif; font-size:12px; letter-spacing:0.06em; color:#aaa; cursor:pointer; padding:10px 18px 10px 0; margin-bottom:-1px; transition:color 0.2s, border-color 0.2s; }
+.pdp-tab { background:none; border:none; border-bottom:2px solid transparent; font-family:'Jost',sans-serif; font-size:14px; letter-spacing:0.06em; color:#aaa; cursor:pointer; padding:10px 18px 10px 0; margin-bottom:-1px; transition:color 0.2s, border-color 0.2s; }
 .pdp-tab.active { color:#1a1a1a; border-bottom-color:#1a1a1a; }
 .pdp-tab-content {
   font-family:'Jost',sans-serif;
-  font-size:13px;
+  font-size:15px;
   font-weight:300;
   color:#555;
   line-height:1.85;

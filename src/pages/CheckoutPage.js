@@ -133,7 +133,7 @@ export default function CheckoutPage() {
         if (!trimmed) return 'Street address is required';
         if (trimmed.length < 8) return 'Please enter a complete address';
         if (trimmed.length > 160) return 'Address must be 160 characters or less';
-        if (!/[A-Za-z]/.test(trimmed) || !/\d/.test(trimmed)) return 'Include house/building number and street name';
+        if (!/[A-Za-z]/.test(trimmed)) return 'Please enter a valid street address';
         if (!/^[A-Za-z0-9\s,./#&()'-]+$/.test(trimmed)) return 'Address contains unsupported characters';
         return '';
       case 'apartment':

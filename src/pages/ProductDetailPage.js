@@ -13,7 +13,7 @@ import './ProductDetailPage.css';
 const DEFAULT_CONTENT = {
   details:  (name) => `This exquisite ${name} is handcrafted by our master artisans using ethically sourced materials.`,
   care:     () => `Store in the provided velvet pouch. Clean with a soft cloth. Avoid contact with perfumes.`,
-  shipping: () => `Free shipping on orders over ₹999. Ships within 1–2 business days. Easy returns within 7 days.`,
+  shipping: () => `Free shipping on orders over ₹599. Ships within 1–2 business days. Easy returns within 7 days.`,
 };
 
 
@@ -204,7 +204,6 @@ export default function ProductDetailPage() {
                 ))}
               </span>
             )}
-            <div className="pdp-stars">★★★★★ <span>(124 reviews)</span></div>
           </div>
 
           <h1 className="pdp-name">{product.name}</h1>
@@ -218,10 +217,6 @@ export default function ProductDetailPage() {
               </>
             )}
           </div>
-          <p className="pdp-price-note">
-            or 4 interest-free payments of {formatINR(Math.round(effectivePrice / 4))}
-          </p>
-
           {stockMessage && (
             <p className={`pdp-stock-left ${selectedStock <= 5 ? 'low' : ''}`}>
               {stockMessage}
