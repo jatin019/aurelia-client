@@ -1,20 +1,22 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { db } from './firebase/config';
 import { doc, onSnapshot } from 'firebase/firestore';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import ShopPage from './pages/ShopPage';
-import CollectionsPage from './pages/CollectionsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import WishlistPage from './pages/WishlistPage';
-import CheckoutPage from './pages/CheckoutPage';
-import PaymentPage from './pages/PaymentPage';
+import PageSkeleton from './components/PageSkeleton';
 import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
 import { getStockForSelection } from './data/sizeConfig';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ShopPage = lazy(() => import('./pages/ShopPage'));
+const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 
 export const CartContext     = React.createContext();
 export const WishlistContext = React.createContext();
@@ -131,15 +133,17 @@ export default function App() {
           <BrowserRouter>
             <ScrollToTop />
             <Layout>
-              <Routes>
-                <Route path="/"            element={<HomePage />} />
-                <Route path="/shop"        element={<ShopPage />} />
-                <Route path="/collections" element={<CollectionsPage />} />
-                <Route path="/product/:id" element={<ProductDetailPage />} />
-                <Route path="/wishlist"    element={<WishlistPage />} />
-                <Route path="/checkout"    element={<CheckoutPage />} />
-                <Route path="/payment/:orderId" element={<PaymentPage />} />
-              </Routes>
+              <Suspense fallback={<PageSkeleton />}>
+                <Routes>
+                  <Route path="/"            element={<HomePage />} />
+                  <Route path="/shop"        element={<ShopPage />} />
+                  <Route path="/collections" element={<CollectionsPage />} />
+                  <Route path="/product/:id" element={<ProductDetailPage />} />
+                  <Route path="/wishlist"    element={<WishlistPage />} />
+                  <Route path="/checkout"    element={<CheckoutPage />} />
+                  <Route path="/payment/:orderId" element={<PaymentPage />} />
+                </Routes>
+              </Suspense>
             </Layout>
             <Footer />
             <CartDrawer />

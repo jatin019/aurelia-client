@@ -5,6 +5,7 @@ import { CheckCircle, AlertCircle, ArrowLeft, Upload, ShieldCheck } from 'lucide
 import { db } from '../firebase/config';
 import { formatINR } from '../data/products';
 import './PaymentPage.css';
+import PageSkeleton from '../components/PageSkeleton';
 
 const DEFAULT_UPI_ID = process.env.REACT_APP_UPI_ID || 'kanyamaa@upi';
 const DEFAULT_UPI_NAME = process.env.REACT_APP_UPI_NAME || 'KANYAMAA';
@@ -145,7 +146,7 @@ export default function PaymentPage() {
   };
 
   if (loading) {
-    return <div className="payment-page"><div className="payment-card payment-loading">Loading payment details...</div></div>;
+    return <PageSkeleton />;
   }
 
   if (submitted || order?.paymentStatus === 'submitted_for_verification') {

@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Gift, Sparkles, Star } from 'lucide-react';
 import { db } from '../firebase/config';
 import { doc, onSnapshot } from 'firebase/firestore';
 import './CollectionsPage.css';
+import PageSkeleton from '../components/PageSkeleton';
 
 const DEFAULT_COLLECTIONS = [
   { id: 'bestSellers', title: 'Best Sellers', subtitle: 'The pieces everyone keeps coming back for', link: '/shop?section=bestSellers', tag: 'Most loved', ctaText: 'Explore collection', active: true },
@@ -37,13 +38,17 @@ function CollectionLink({ item, className, children }) {
 export default function CollectionsPage() {
   const navigate = useNavigate();
   const [collections, setCollections] = useState(DEFAULT_COLLECTIONS);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'site', 'collections_page'), snap => {
       if (snap.exists() && snap.data().items?.length) setCollections(snap.data().items);
-    }, () => {});
+      setLoading(false);
+    }, () => setLoading(false));
     return () => unsub();
   }, []);
+
+  if (loading) return <PageSkeleton />;
 
   const visible = collections.filter(item => item.active !== false);
   const bestSellers = findById(visible, 'bestSellers') || visible[0];

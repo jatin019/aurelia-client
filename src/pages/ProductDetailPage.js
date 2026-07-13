@@ -92,7 +92,34 @@ export default function ProductDetailPage() {
       ? (tab === 'details' ? DEFAULT_CONTENT.details(product.name) : DEFAULT_CONTENT[tab]())
       : '');
 
-  if (loading) return <div className="pdp-loading"><div className="pdp-spinner" /></div>;
+  if (loading) return (
+    <div className="pdp-wrapper pdp-skeleton-page" aria-label="Loading product" aria-busy="true">
+      <div className="pdp-skeleton-breadcrumb"><span /><span /><span /></div>
+      <div className="pdp-grid">
+        <div className="pdp-skeleton-media">
+          <div className="pdp-skeleton-shimmer pdp-skeleton-main-image" />
+          <div className="pdp-skeleton-thumbnails">
+            {[1, 2, 3, 4].map(i => <span className="pdp-skeleton-shimmer" key={i} />)}
+          </div>
+        </div>
+        <div className="pdp-info pdp-skeleton-info">
+          <span className="pdp-skeleton-shimmer pdp-skeleton-category" />
+          <span className="pdp-skeleton-shimmer pdp-skeleton-title" />
+          <span className="pdp-skeleton-shimmer pdp-skeleton-price" />
+          <span className="pdp-skeleton-shimmer pdp-skeleton-stock" />
+          <div className="pdp-skeleton-option">
+            <span className="pdp-skeleton-shimmer pdp-skeleton-label" />
+            <div>{[1, 2, 3, 4].map(i => <span className="pdp-skeleton-shimmer pdp-skeleton-size" key={i} />)}</div>
+          </div>
+          <div className="pdp-skeleton-cart">
+            <span className="pdp-skeleton-shimmer" />
+            <span className="pdp-skeleton-shimmer" />
+          </div>
+          <span className="pdp-skeleton-shimmer pdp-skeleton-wishlist" />
+        </div>
+      </div>
+    </div>
+  );
   if (!product) return (
     <div className="pdp-not-found">
       <h2>Product not found</h2>

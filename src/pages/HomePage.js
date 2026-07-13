@@ -8,16 +8,18 @@ import Reviews from '../components/Reviews';
 import CountdownBanner from '../components/CountdownBanner';
 import MarqueeBanner from '../components/MarqueeBanner';
 import Navbar from '../components/Navbar';
+import PageSkeleton from '../components/PageSkeleton';
 import './HomePage.css';
 
 export default function HomePage() {
   const [bestSellers, setBestSellers] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
-      if (snap.empty) { setBestSellers([]); setNewArrivals([]); return; }
+      if (snap.empty) { setBestSellers([]); setNewArrivals([]); setLoading(false); return; }
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const byId = (arr) => {
         const seen = new Set(); const out = [];
@@ -26,9 +28,12 @@ export default function HomePage() {
       };
       setBestSellers(byId(all.filter(p => p.section === 'bestSellers')));
       setNewArrivals(byId(all.filter(p => p.section === 'newArrivals')));
-    }, () => {});
+      setLoading(false);
+    }, () => setLoading(false));
     return () => unsub();
   }, []);
+
+  if (loading) return <PageSkeleton variant="home" />;
 
   return (
     <div className="home-page">

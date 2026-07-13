@@ -8,6 +8,7 @@ import { CartContext } from '../App';
 import { WishlistContext } from '../App';
 import { Heart, SlidersHorizontal, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import './ShopPage.css';
+import PageSkeleton from '../components/PageSkeleton';
 
 const FALLBACK_CATS = [
   { id:'rings',     label:'Rings'     },
@@ -111,6 +112,7 @@ export default function ShopPage() {
   const saleParam       = searchParams.get('sale') === 'true';
 
   const [products,   setProducts]   = useState(allProducts);
+  const [loading, setLoading] = useState(true);
   const [catRow1,    setCatRow1]    = useState([]);
   const [catRow2,    setCatRow2]    = useState([]);
   const [subCatMap,  setSubCatMap]  = useState({});
@@ -171,10 +173,11 @@ export default function ShopPage() {
 useEffect(() => {
   const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
   const unsub = onSnapshot(q, snap => {
-    if (snap.empty) { setProducts([]); return; }
+    if (snap.empty) { setProducts([]); setLoading(false); return; }
     const fp = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     setProducts(fp);
-  }, () => {});
+    setLoading(false);
+  }, () => setLoading(false));
   return () => unsub();
 }, []);
 
@@ -331,6 +334,8 @@ if (appliedSubCats.length > 0) {
 };
 
   const hasUrlFilter = sectionFilter || saleParam || minPriceParam > 0 || maxPriceParam > 0;
+
+  if (loading) return <PageSkeleton variant="shop" />;
 
   return (
     <div className="page-wrapper shop-page">
