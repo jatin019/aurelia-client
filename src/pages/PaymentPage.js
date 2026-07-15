@@ -110,13 +110,14 @@ export default function PaymentPage() {
   const submitProof = async (e) => {
     e.preventDefault();
     const cleanUtr = utr.trim().toUpperCase();
+    const hasValidUtr = /^[A-Z0-9]{8,30}$/.test(cleanUtr);
 
-    if (!/^[A-Z0-9]{8,30}$/.test(cleanUtr)) {
-      setError('Enter a valid UTR/reference number, 8–30 letters or digits.');
+    if (!hasValidUtr && !screenshot) {
+      setError('Enter a valid UTR/reference number or upload a screenshot that clearly shows the UTR and payment details.');
       return;
     }
-    if (!screenshot) {
-      setError('Please upload the payment screenshot.');
+    if (cleanUtr && !hasValidUtr) {
+      setError('Enter a valid UTR/reference number, 8-30 letters or digits, or clear this field and use the screenshot as proof.');
       return;
     }
 
@@ -196,16 +197,17 @@ export default function PaymentPage() {
 
         <form className="payment-card proof-card" onSubmit={submitProof}>
           <h2>Upload payment details</h2>
-          <p className="proof-sub">After payment, enter your UTR/reference number and upload the payment screenshot.</p>
+          <p className="proof-sub">Provide either your UTR/reference number or a screenshot that clearly shows the UTR and payment details.</p>
 
           <label className="proof-field">
-            <span>UTR / Reference Number</span>
+            <span>UTR / Reference Number (Optional)</span>
             <input value={utr} onChange={e => setUtr(e.target.value)} placeholder="Example: 426812345678" />
           </label>
 
+          <p className="proof-or">OR</p>
           <label className="screenshot-upload">
             <Upload size={18} />
-            <span>{screenshotName || 'Upload payment screenshot'}</span>
+            <span>{screenshotName || 'Upload screenshot showing UTR & payment details'}</span>
             <input type="file" accept="image/*" onChange={handleScreenshot} />
           </label>
 
