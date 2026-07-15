@@ -113,11 +113,11 @@ export default function PaymentPage() {
     const hasValidUtr = /^[A-Z0-9]{8,30}$/.test(cleanUtr);
 
     if (!hasValidUtr && !screenshot) {
-      setError('Enter a valid UTR/reference number or upload a screenshot that clearly shows the UTR and payment details.');
+      setError('Enter a valid UTR/UPI reference number or upload a screenshot that clearly shows the UTR and payment details.');
       return;
     }
     if (cleanUtr && !hasValidUtr) {
-      setError('Enter a valid UTR/reference number, 8-30 letters or digits, or clear this field and use the screenshot as proof.');
+      setError('Enter a valid UTR/UPI reference number, 8-30 letters or digits, or clear this field and use the screenshot as proof.');
       return;
     }
 
@@ -197,10 +197,10 @@ export default function PaymentPage() {
 
         <form className="payment-card proof-card" onSubmit={submitProof}>
           <h2>Upload payment details</h2>
-          <p className="proof-sub">Provide either your UTR/reference number or a screenshot that clearly shows the UTR and payment details.</p>
+          <p className="proof-sub">Provide either your UTR/UPI reference number or a screenshot that clearly shows the UTR and payment details.</p>
 
           <label className="proof-field">
-            <span>UTR / Reference Number (Optional)</span>
+            <span>UTR / UPI Reference Number</span>
             <input value={utr} onChange={e => setUtr(e.target.value)} placeholder="Example: 426812345678" />
           </label>
 
