@@ -61,8 +61,10 @@
 }
 
 .payment-qr {
+  display: block;
   width: 260px;
   max-width: 100%;
+  margin: 0 auto;
   border-radius: 14px;
   border: 1px solid #f0ece6;
   padding: 12px;
@@ -76,7 +78,6 @@
   margin-top: 14px;
 }
 
-.upi-open-link,
 .payment-success button,
 .payment-error-state button,
 .submit-proof-btn {

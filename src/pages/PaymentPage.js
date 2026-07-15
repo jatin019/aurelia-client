@@ -188,7 +188,6 @@ export default function PaymentPage() {
           <div className="amount-pill">Pay exactly {formatINR(payableAmount)}</div>
           <img src={qrSrc} alt={`UPI QR for ${formatINR(payableAmount)}`} className="payment-qr" />
           <p className="upi-id">UPI ID: <strong>{upiId}</strong></p>
-          <a className="upi-open-link" href={upiUrl}>Open UPI app</a>
           <div className="payment-warning">
             <ShieldCheck size={16} />
             Pay only the exact amount shown. Admin will verify this amount before approval.
