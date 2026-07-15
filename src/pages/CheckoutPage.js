@@ -302,14 +302,53 @@ export default function CheckoutPage() {
       };
       const dateKey = makeDateKey();
       const secret = makeSecret();
+      const phoneDigits = getPhoneDigits(sanitizedForm.phone);
 
       const createdOrder = await runTransaction(db, async (transaction) => {
         const counterRef = doc(db, 'orderCounters', dateKey);
-        const counterSnap = await transaction.get(counterRef);
+        const couponRef = appliedCoupon ? doc(db, 'coupons', appliedCoupon.code) : null;
+        const redemptionRef = appliedCoupon
+          ? doc(db, 'couponRedemptions', `${appliedCoupon.code}_${phoneDigits}`)
+          : null;
+        const [counterSnap, couponSnap, redemptionSnap] = await Promise.all([
+          transaction.get(counterRef),
+          couponRef ? transaction.get(couponRef) : Promise.resolve(null),
+          redemptionRef ? transaction.get(redemptionRef) : Promise.resolve(null),
+        ]);
+
+        let orderCoupon = null;
+        if (couponSnap) {
+          if (!couponSnap.exists() || couponSnap.data().active === false) {
+            throw new Error('This coupon is no longer active.');
+          }
+
+          const couponData = couponSnap.data();
+          const usageLimit = Number(couponData.maxUses) || 0;
+          const customerUses = Number(redemptionSnap?.data()?.uses) || 0;
+          if (usageLimit && customerUses >= usageLimit) {
+            throw new Error('You have already used this coupon to its limit.');
+          }
+          if (couponData.minOrder && subtotal < Number(couponData.minOrder)) {
+            throw new Error(`Minimum order of ${formatINR(couponData.minOrder)} required for this coupon.`);
+          }
+          if (couponData.expiresAt) {
+            const expiry = couponData.expiresAt.toDate ? couponData.expiresAt.toDate() : new Date(couponData.expiresAt);
+            if (new Date() > expiry) throw new Error('This coupon has expired.');
+          }
+
+          orderCoupon = {
+            code: appliedCoupon.code,
+            percent: Number(couponData.discountPercent || couponData.percent || 10),
+          };
+        }
+
         const nextNumber = (Number(counterSnap.data()?.count) || 0) + 1;
         const orderNumber = `${dateKey}_${nextNumber}`;
         const pendingOrderId = `${orderNumber}_${secret}`;
         const orderRef = doc(db, 'pendingOrders', pendingOrderId);
+        const orderDiscount = orderCoupon ? Math.round((subtotal * orderCoupon.percent) / 100) : 0;
+        const orderTax = Math.round((subtotal - orderDiscount) * 0.03);
+        const orderTotal = subtotal + shipping + orderTax - orderDiscount;
 
         const orderData = {
           orderNumber,
@@ -331,10 +370,10 @@ export default function CheckoutPage() {
           notes: sanitizedForm.notes,
           paymentMethod: 'upi_qr',
           paymentStatus: 'awaiting_payment',
-          subtotal, shipping, tax, discount,
-          couponCode: appliedCoupon?.code || '',
-          payableAmount: total,
-          total,
+          subtotal, shipping, tax: orderTax, discount: orderDiscount,
+          couponCode: orderCoupon?.code || '',
+          payableAmount: orderTotal,
+          total: orderTotal,
           status: 'payment_pending',
           createdAt: serverTimestamp(),
         };
@@ -342,7 +381,18 @@ export default function CheckoutPage() {
         transaction.set(counterRef, { count: nextNumber, updatedAt: serverTimestamp() }, { merge: true });
         transaction.set(orderRef, orderData);
 
-        return { id: pendingOrderId, orderNumber, total };
+        if (redemptionRef && orderCoupon) {
+          transaction.set(redemptionRef, {
+            couponCode: orderCoupon.code,
+            phoneDigits,
+            uses: (Number(redemptionSnap?.data()?.uses) || 0) + 1,
+            lastOrderId: pendingOrderId,
+            lastUsedAt: serverTimestamp(),
+            ...(redemptionSnap?.exists() ? {} : { createdAt: serverTimestamp() }),
+          }, { merge: true });
+        }
+
+        return { id: pendingOrderId, orderNumber, total: orderTotal };
       });
 
       setCart([]);
@@ -352,7 +402,7 @@ export default function CheckoutPage() {
       });
     } catch (err) {
       console.error(err);
-      alert('Could not place order. Please try again.');
+      alert(err.message || 'Could not place order. Please try again.');
     }
     setSubmitting(false);
   };
