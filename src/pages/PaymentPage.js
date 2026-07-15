@@ -128,9 +128,9 @@ export default function PaymentPage() {
       await updateDoc(doc(db, 'pendingOrders', orderId), {
         paymentStatus: 'submitted_for_verification',
         paymentProof: {
-          utr: cleanUtr,
-          screenshotDataUrl: screenshot,
-          screenshotName,
+          utr: cleanUtr || '',
+          screenshotDataUrl: screenshot || '',
+          screenshotName: screenshotName || '',
           amountPaid: payableAmount,
           submittedAt: serverTimestamp(),
         },

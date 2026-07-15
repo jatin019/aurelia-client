@@ -221,6 +221,7 @@ export default function CheckoutPage() {
     setCouponError('');
 
     try {
+      const phoneDigits = getPhoneDigits(form.phone);
       const couponSnap = await getDoc(doc(db, 'coupons', code));
 
       if (!couponSnap.exists()) {
@@ -243,12 +244,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (couponData.maxUses && couponData.uses >= couponData.maxUses) {
-        setCouponError('This coupon usage limit is over');
-        setCouponLoading(false);
-        return;
-      }
-
       if (couponData.expiresAt) {
         const expiry = couponData.expiresAt.toDate ? couponData.expiresAt.toDate() : new Date(couponData.expiresAt);
         if (new Date() > expiry) {
@@ -256,6 +251,26 @@ export default function CheckoutPage() {
           setCouponLoading(false);
           return;
         }
+      }
+
+      // Check per-phone usage limit (the real enforcement mechanism)
+      if (phoneDigits.length === 10 && couponData.maxUses) {
+        const redemptionSnap = await getDoc(
+          doc(db, 'couponRedemptions', `${code}_${phoneDigits}`)
+        );
+        const customerUses = Number(redemptionSnap?.data()?.uses) || 0;
+        if (customerUses >= Number(couponData.maxUses)) {
+          setCouponError('You have already used this coupon to its limit.');
+          setCouponLoading(false);
+          return;
+        }
+      }
+
+      // Global uses check (for coupons without per-person limit but with a total cap)
+      if (couponData.maxUses && couponData.uses >= couponData.maxUses) {
+        setCouponError('This coupon usage limit is over');
+        setCouponLoading(false);
+        return;
       }
 
       const percent = Number(couponData.discountPercent || couponData.percent || 10);
@@ -382,13 +397,30 @@ export default function CheckoutPage() {
         transaction.set(orderRef, orderData);
 
         if (redemptionRef && orderCoupon) {
-          transaction.set(redemptionRef, {
-            couponCode: orderCoupon.code,
-            phoneDigits,
-            uses: (Number(redemptionSnap?.data()?.uses) || 0) + 1,
-            lastOrderId: pendingOrderId,
-            lastUsedAt: serverTimestamp(),
-            ...(redemptionSnap?.exists() ? {} : { createdAt: serverTimestamp() }),
+          const prevUses = Number(redemptionSnap?.data()?.uses) || 0;
+          if (redemptionSnap?.exists()) {
+            // Document exists → update: only touch the three fields the rule allows
+            transaction.update(redemptionRef, {
+              uses: prevUses + 1,
+              lastOrderId: pendingOrderId,
+              lastUsedAt: serverTimestamp(),
+            });
+          } else {
+            // First use → create with uses == 1 (matches Firestore allow create rule)
+            transaction.set(redemptionRef, {
+              couponCode: orderCoupon.code,
+              phoneDigits,
+              uses: 1,
+              lastOrderId: pendingOrderId,
+              lastUsedAt: serverTimestamp(),
+              createdAt: serverTimestamp(),
+            });
+          }
+
+          // Increment the global uses counter on the coupon doc so admin can see total usage
+          transaction.set(couponRef, {
+            uses: (Number(couponSnap.data()?.uses) || 0) + 1,
+            updatedAt: serverTimestamp(),
           }, { merge: true });
         }
 
@@ -402,7 +434,18 @@ export default function CheckoutPage() {
       });
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Could not place order. Please try again.');
+      const msg = err.message || '';
+      // Surface coupon-specific errors back to the coupon field instead of alert
+      if (msg.toLowerCase().includes('coupon')) {
+        setAppliedCoupon(null);
+        setCoupon('');
+        setCouponError(msg);
+        // Scroll to the coupon section so the user sees the error
+        document.querySelector('.coupon-section, .coupon-applied')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        alert(msg || 'Could not place order. Please try again.');
+      }
     }
     setSubmitting(false);
   };
